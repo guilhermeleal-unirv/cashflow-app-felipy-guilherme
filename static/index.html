@@ -184,16 +184,57 @@
             background: rgba(255,255,255,0.04); margin-top: 0.5rem;
         }
 
-        /* ── JSON ── */
-        pre.json-raw {
-            background: rgba(0,0,0,0.3); border-radius: 8px; padding: 1rem;
-            font-size: 0.75rem; overflow-x: auto; color: #a3e635;
-            white-space: pre-wrap; word-break: break-word; margin-top: 0.5rem;
-            max-height: 320px; overflow-y: auto;
+        /* ── Tabs ── */
+        .tabs-bar {
+            display: flex; gap: 0.25rem;
+            background: rgba(0,0,0,0.25);
+            border: 1px solid var(--border);
+            border-radius: 12px; padding: 0.3rem;
+            margin-bottom: 1rem;
         }
-        .toggle-json {
-            cursor: pointer; color: var(--text-muted); font-size: 0.8rem;
-            text-decoration: underline; margin-top: 0.5rem; display: inline-block;
+        .tab-btn {
+            flex: 1; padding: 0.55rem 1rem;
+            background: transparent; border: none;
+            border-radius: 8px; color: var(--text-muted);
+            font-size: 0.875rem; font-weight: 500;
+            cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+        }
+        .tab-btn:hover { color: var(--text-color); background: rgba(255,255,255,0.05); }
+        .tab-btn.active {
+            background: rgba(16,185,129,0.15);
+            color: var(--primary);
+            box-shadow: 0 0 0 1px rgba(16,185,129,0.3);
+        }
+        .tab-panel { display: none; animation: fadeIn 0.25s ease; }
+        .tab-panel.active { display: block; }
+
+        /* ── JSON panel ── */
+        .json-toolbar {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 0.6rem;
+        }
+        .json-toolbar-label {
+            font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.06em; color: var(--text-muted);
+        }
+        .copy-btn {
+            width: auto; padding: 0.35rem 0.9rem; margin-top: 0;
+            background: rgba(16,185,129,0.12);
+            border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 8px; color: var(--primary);
+            font-size: 0.8rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; gap: 0.35rem;
+        }
+        .copy-btn:hover { background: rgba(16,185,129,0.22); transform: none; box-shadow: none; }
+        .copy-btn.copied { background: rgba(16,185,129,0.3); color: #fff; }
+        pre.json-raw {
+            background: rgba(0,0,0,0.35); border-radius: 10px; padding: 1rem;
+            font-size: 0.75rem; overflow-x: auto; color: #a3e635;
+            white-space: pre-wrap; word-break: break-word;
+            max-height: 480px; overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.06);
         }
     </style>
 </head>
@@ -220,6 +261,19 @@
 
         <div class="result-container" id="resultContainer">
             <div class="result-header">Dados Extraídos</div>
+
+            <!-- ── Tabs ── -->
+            <div class="tabs-bar">
+                <button class="tab-btn active" id="tab-visual" onclick="switchTab('visual')">
+                    📋 Visualização Formatada
+                </button>
+                <button class="tab-btn" id="tab-json" onclick="switchTab('json')">
+                    &lt;/&gt; JSON Bruto
+                </button>
+            </div>
+
+            <!-- ── Painel: Visualização ── -->
+            <div class="tab-panel active" id="panel-visual">
 
             <!-- ── NF Header ── -->
             <div class="result-section">
@@ -373,9 +427,18 @@
                 <div id="r-parcelas"></div>
             </div>
 
-            <!-- ── JSON bruto ── -->
-            <span class="toggle-json" id="toggleJson" onclick="toggleJson()">Ver JSON bruto</span>
-            <pre class="json-raw" id="jsonRaw" style="display:none"></pre>
+            </div><!-- /panel-visual -->
+
+            <!-- ── Painel: JSON Bruto ── -->
+            <div class="tab-panel" id="panel-json">
+                <div class="json-toolbar">
+                    <span class="json-toolbar-label">&lt;&gt; Dados em JSON</span>
+                    <button class="copy-btn" id="copyBtn" onclick="copyJson()" title="Copiar JSON (Ctrl+C)">
+                        📋 Copiar JSON
+                    </button>
+                </div>
+                <pre class="json-raw" id="jsonRaw"></pre>
+            </div>
         </div>
     </div>
 </div>
@@ -405,13 +468,36 @@
         return map[String(val)] || fmt(val);
     }
 
-    function toggleJson() {
-        const el = document.getElementById('jsonRaw');
-        const btn = document.getElementById('toggleJson');
-        const hidden = el.style.display === 'none';
-        el.style.display = hidden ? 'block' : 'none';
-        btn.textContent = hidden ? 'Ocultar JSON bruto' : 'Ver JSON bruto';
+    // ── Tab system ──
+    function switchTab(name) {
+        ['visual', 'json'].forEach(t => {
+            document.getElementById('tab-' + t).classList.toggle('active', t === name);
+            document.getElementById('panel-' + t).classList.toggle('active', t === name);
+        });
     }
+
+    // ── Copiar JSON ──
+    function copyJson() {
+        const pre = document.getElementById('jsonRaw');
+        if (!pre.textContent.trim()) return;
+        navigator.clipboard.writeText(pre.textContent).then(() => {
+            const btn = document.getElementById('copyBtn');
+            btn.textContent = '✓ Copiado!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.textContent = '📋 Copiar JSON';
+                btn.classList.remove('copied');
+            }, 2000);
+        });
+    }
+
+    // Ctrl+C global copia o JSON quando há dados extraídos
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'c' && !window.getSelection().toString() && document.getElementById('jsonRaw').textContent.trim()) {
+            e.preventDefault();
+            copyJson();
+        }
+    });
 
     function renderResult(data) {
         // ── NF ──
@@ -520,6 +606,14 @@
 
         // ── JSON bruto ──
         document.getElementById('jsonRaw').textContent = JSON.stringify(data, null, 2);
+
+        // Sempre volta para aba de visualização em novos resultados
+        switchTab('visual');
+
+        // Reset botão copiar
+        const copyBtn = document.getElementById('copyBtn');
+        if (copyBtn) { copyBtn.textContent = '📋 Copiar JSON'; copyBtn.classList.remove('copied'); }
+
         document.getElementById('resultContainer').style.display = 'block';
         document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
