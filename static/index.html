@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CASHFLOW - Extração Automática via LLM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+            --section-bg: rgba(15, 23, 42, 0.6);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.15), transparent 25%);
+        }
+        .container { width: 100%; max-width: 680px; }
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1);
+        }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        h1 {
+            font-size: 1.6rem; font-weight: 700; text-align: center; margin-bottom: 0.4rem;
+            background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        p.subtitle { text-align: center; color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; }
+        .form-group { margin-bottom: 1.25rem; }
+        label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-muted); }
+        input[type="text"], input[type="file"] {
+            width: 100%; padding: 0.75rem 1rem;
+            background: rgba(15,23,42,0.6); border: 1px solid var(--border);
+            border-radius: 12px; color: var(--text-color); font-size: 1rem;
+            outline: none; transition: all 0.3s ease;
+        }
+        input[type="text"]:focus, input[type="file"]:focus {
+            border-color: var(--primary); box-shadow: 0 0 0 3px rgba(16,185,129,0.2);
+        }
+        input[type="file"]::file-selector-button {
+            background: var(--primary); color: white; border: none;
+            padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;
+            margin-right: 1rem; font-weight: 500; transition: background 0.2s;
+        }
+        input[type="file"]::file-selector-button:hover { background: var(--primary-dark); }
+        button {
+            width: 100%; padding: 1rem;
+            background: linear-gradient(135deg, var(--primary) 0%, #047857 100%);
+            color: white; border: none; border-radius: 12px;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s; margin-top: 0.75rem;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -10px var(--primary); }
+        button:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        .loader {
+            display: none; width: 20px; height: 20px;
+            border: 3px solid rgba(255,255,255,0.3); border-radius: 50%;
+            border-top-color: white; animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Resultado */
+        .result-container {
+            margin-top: 2rem; display: none; animation: fadeIn 0.5s ease;
+        }
+        .result-header {
+            font-size: 1rem; font-weight: 700; color: var(--primary);
+            margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;
+        }
+        .result-header::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+        .result-section {
+            background: var(--section-bg); border: 1px solid var(--border);
+            border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem;
+        }
+        .section-title {
+            font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.75rem;
+        }
+        .field-row {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            gap: 1rem; padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .field-row:last-child { border-bottom: none; }
+        .field-label { color: var(--text-muted); font-size: 0.875rem; flex-shrink: 0; }
+        .field-value { font-weight: 600; font-size: 0.9rem; text-align: right; word-break: break-word; }
+        .badge {
+            display: inline-block; background: rgba(16,185,129,0.15);
+            color: var(--primary); border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 999px; padding: 0.2rem 0.75rem; font-size: 0.8rem; font-weight: 600;
+        }
+        .valor-destaque {
+            font-size: 1.25rem; color: var(--primary); font-weight: 700;
+        }
+        .parcela-item {
+            display: flex; justify-content: space-between;
+            padding: 0.4rem 0.75rem; border-radius: 8px;
+            background: rgba(255,255,255,0.04); margin-top: 0.5rem;
+        }
+        pre.json-raw {
+            background: rgba(0,0,0,0.3); border-radius: 8px; padding: 1rem;
+            font-size: 0.78rem; overflow-x: auto; color: #a3e635;
+            white-space: pre-wrap; word-break: break-word; margin-top: 0.5rem;
+            max-height: 300px; overflow-y: auto;
+        }
+        .toggle-json {
+            cursor: pointer; color: var(--text-muted); font-size: 0.8rem;
+            text-decoration: underline; margin-top: 0.5rem; display: inline-block;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="glass-card">
+        <h1>CASHFLOW LLM Parser</h1>
+        <p class="subtitle">Extração automática de Nota Fiscal via Gemini IA</p>
+
+        <form id="extractForm">
+            <div class="form-group">
+                <label for="pdfFile">Nota Fiscal (PDF)</label>
+                <input type="file" id="pdfFile" accept="application/pdf" required>
+            </div>
+            <div class="form-group">
+                <label for="apiKey">Gemini API Key</label>
+                <input type="text" id="apiKey" placeholder="AIzaSy..." required>
+            </div>
+            <button type="submit" id="submitBtn">
+                <div class="loader" id="btnLoader"></div>
+                <span id="btnText">⚡ Analisar com IA</span>
+            </button>
+        </form>
+
+        <div class="result-container" id="resultContainer">
+            <div class="result-header">Dados Extraídos</div>
+
+            <!-- Fornecedor -->
+            <div class="result-section">
+                <div class="section-title">📦 Fornecedor</div>
+                <div class="field-row"><span class="field-label">Razão Social</span><span class="field-value" id="r-razao">—</span></div>
+                <div class="field-row"><span class="field-label">Fantasia</span><span class="field-value" id="r-fantasia">—</span></div>
+                <div class="field-row"><span class="field-label">CNPJ</span><span class="field-value" id="r-cnpj">—</span></div>
+            </div>
+
+            <!-- Faturado -->
+            <div class="result-section">
+                <div class="section-title">👤 Faturado Para</div>
+                <div class="field-row"><span class="field-label">Nome Completo</span><span class="field-value" id="r-nome">—</span></div>
+                <div class="field-row"><span class="field-label">CPF</span><span class="field-value" id="r-cpf">—</span></div>
+            </div>
+
+            <!-- Nota Fiscal -->
+            <div class="result-section">
+                <div class="section-title">🧾 Nota Fiscal</div>
+                <div class="field-row"><span class="field-label">Número NF</span><span class="field-value" id="r-nf">—</span></div>
+                <div class="field-row"><span class="field-label">Data de Emissão</span><span class="field-value" id="r-emissao">—</span></div>
+                <div class="field-row"><span class="field-label">Valor Total</span><span class="field-value valor-destaque" id="r-valor">—</span></div>
+            </div>
+
+            <!-- Produtos -->
+            <div class="result-section">
+                <div class="section-title">🛒 Descrição dos Produtos</div>
+                <p id="r-produtos" style="font-size:0.9rem; line-height:1.5; color: var(--text-color);">—</p>
+            </div>
+
+            <!-- Classificação -->
+            <div class="result-section">
+                <div class="section-title">🏷️ Classificação da Despesa</div>
+                <span class="badge" id="r-classificacao">—</span>
+            </div>
+
+            <!-- Parcelas -->
+            <div class="result-section">
+                <div class="section-title">📅 Parcelas</div>
+                <div id="r-parcelas"></div>
+            </div>
+
+            <!-- JSON bruto -->
+            <span class="toggle-json" id="toggleJson" onclick="toggleJson()">Ver JSON bruto</span>
+            <pre class="json-raw" id="jsonRaw" style="display:none"></pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    let rawData = null;
+
+    function fmt(val) {
+        return (val === null || val === undefined || val === '') ? '—' : val;
+    }
+
+    function toggleJson() {
+        const el = document.getElementById('jsonRaw');
+        const btn = document.getElementById('toggleJson');
+        if (el.style.display === 'none') {
+            el.style.display = 'block';
+            btn.textContent = 'Ocultar JSON bruto';
+        } else {
+            el.style.display = 'none';
+            btn.textContent = 'Ver JSON bruto';
+        }
+    }
+
+    function renderResult(data) {
+        rawData = data;
+
+        document.getElementById('r-razao').textContent = fmt(data.fornecedor?.razao_social);
+        document.getElementById('r-fantasia').textContent = fmt(data.fornecedor?.fantasia);
+        document.getElementById('r-cnpj').textContent = fmt(data.fornecedor?.cnpj);
+        document.getElementById('r-nome').textContent = fmt(data.faturado?.nome_completo);
+        document.getElementById('r-cpf').textContent = fmt(data.faturado?.cpf);
+        document.getElementById('r-nf').textContent = fmt(data.numero_nota_fiscal);
+        document.getElementById('r-emissao').textContent = fmt(data.data_emissao);
+        document.getElementById('r-valor').textContent = data.valor_total ? `R$ ${Number(data.valor_total).toFixed(2)}` : '—';
+        document.getElementById('r-produtos').textContent = fmt(data.descricao_produtos);
+        document.getElementById('r-classificacao').textContent = fmt(data.classificacao_despesa);
+
+        const parcelasEl = document.getElementById('r-parcelas');
+        parcelasEl.innerHTML = '';
+        if (data.parcelas && data.parcelas.length > 0) {
+            data.parcelas.forEach(p => {
+                parcelasEl.innerHTML += `
+                    <div class="parcela-item">
+                        <span>Parcela ${p.numero}</span>
+                        <span>${fmt(p.data_vencimento)}</span>
+                        <span style="color:var(--primary);font-weight:600">R$ ${Number(p.valor).toFixed(2)}</span>
+                    </div>`;
+            });
+        } else {
+            parcelasEl.innerHTML = '<span style="color:var(--text-muted)">Não identificado</span>';
+        }
+
+        document.getElementById('jsonRaw').textContent = JSON.stringify(data, null, 2);
+        document.getElementById('resultContainer').style.display = 'block';
+        document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    document.getElementById('extractForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fileInput = document.getElementById('pdfFile');
+        const apiKeyInput = document.getElementById('apiKey');
+        const btn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const btnLoader = document.getElementById('btnLoader');
+
+        if (!fileInput.files[0] || !apiKeyInput.value) return;
+
+        btn.disabled = true;
+        btnText.style.display = 'none';
+        btnLoader.style.display = 'block';
+        document.getElementById('resultContainer').style.display = 'none';
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        formData.append('api_key', apiKeyInput.value);
+
+        try {
+            const response = await fetch('/documentos/extrair_via_llm', {
+                method: 'POST',
+                body: formData
+            });
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.detail || 'Erro na requisição');
+            }
+            const data = await response.json();
+            renderResult(data);
+        } catch (error) {
+            alert('Erro ao processar PDF: ' + error.message);
+        } finally {
+            btn.disabled = false;
+            btnText.style.display = 'block';
+            btnLoader.style.display = 'none';
+        }
+    });
+</script>
+</body>
+</html>
