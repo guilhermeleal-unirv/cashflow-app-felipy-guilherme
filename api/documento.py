@@ -133,18 +133,72 @@ def extrair_via_llm(
         Siga exatamente esta estrutura:
 
         {{
-          "fornecedor": {{
-            "razao_social": "Nome completo da empresa emitente",
-            "fantasia": "Nome fantasia, ou null se não houver",
-            "cnpj": "apenas números"
+          "emitente": {{
+            "razao_social": "Razão Social da empresa emitente (campo RAZÃO SOCIAL / NOME no cabeçalho do DANFE)",
+            "fantasia": "Nome Fantasia do emitente (campo NOME FANTASIA abaixo da razão social). Se esse campo não existir na nota, retorne null",
+            "cnpj": "apenas os 14 dígitos numéricos do CNPJ do EMITENTE que aparece no cabeçalho após o rótulo C.N.P.J. — nunca use o CNPJ do destinatário aqui",
+            "ie": "Inscrição Estadual do emitente, apenas números, ou null",
+            "endereco": "Logradouro e número do emitente",
+            "municipio": "Município do emitente",
+            "uf": "UF do emitente, 2 letras",
+            "cep": "CEP apenas números, ou null",
+            "fone": "Telefone do emitente, ou null"
           }},
-          "faturado": {{
-            "nome_completo": "Nome do destinatário/comprador",
-            "cpf": "apenas números, ou null se for pessoa jurídica"
+          "destinatario": {{
+            "nome_razao": "Nome completo ou Razão Social do destinatário",
+            "cnpj_cpf": "apenas os dígitos numéricos do CNPJ ou CPF do destinatário (seção DESTINATÁRIO)",
+            "ie": "Inscrição Estadual do destinatário, ou null",
+            "endereco": "Endereço completo do destinatário",
+            "municipio": "Município do destinatário",
+            "uf": "UF do destinatário, 2 letras"
           }},
-          "numero_nota_fiscal": "número da NF",
-          "data_emissao": "YYYY-MM-DD",
-          "descricao_produtos": "descrição resumida de todos os produtos/itens da nota",
+          "nota_fiscal": {{
+            "numero": "número da NF-e",
+            "serie": "série da NF-e",
+            "data_emissao": "YYYY-MM-DD",
+            "natureza_operacao": "natureza da operação descrita no cabeçalho da NF",
+            "tipo_operacao": "0 para Entrada ou 1 para Saída"
+          }},
+          "totais": {{
+            "valor_total_produtos": 0.00,
+            "bc_icms": 0.00,
+            "valor_icms": 0.00,
+            "bc_icms_st": 0.00,
+            "valor_icms_st": 0.00,
+            "valor_ipi": 0.00,
+            "valor_pis": 0.00,
+            "valor_cofins": 0.00,
+            "valor_frete": 0.00,
+            "valor_seguro": 0.00,
+            "desconto": 0.00,
+            "outras_despesas": 0.00,
+            "valor_total_nota": 0.00
+          }},
+          "itens": [
+            {{
+              "codigo": "código do produto, ou null",
+              "descricao": "descrição completa do produto/serviço",
+              "ncm": "código NCM sem pontos ou traços",
+              "cst": "código CST, ou null",
+              "cfop": "código CFOP, ou null",
+              "unidade": "unidade de medida (UN, PC, KG, L, etc.)",
+              "quantidade": 0,
+              "valor_unitario": 0.00,
+              "valor_total": 0.00,
+              "bc_icms": 0.00,
+              "valor_icms": 0.00,
+              "valor_ipi": 0.00,
+              "aliquota_icms": 0.00,
+              "aliquota_ipi": 0.00
+            }}
+          ],
+          "transportador": {{
+            "razao_social": "Razão Social do transportador, ou null",
+            "cnpj_cpf": "apenas dígitos do CNPJ/CPF do transportador, ou null",
+            "frete_por_conta": "código: 0=Emitente, 1=Destinatário, 9=Sem Frete",
+            "placa_veiculo": "placa do veículo, ou null",
+            "uf_veiculo": "UF do veículo, ou null"
+          }},
           "parcelas": [
             {{
               "numero": 1,
@@ -152,24 +206,21 @@ def extrair_via_llm(
               "valor": 0.00
             }}
           ],
-          "valor_total": 0.00,
-          "classificacao_despesa": "Uma das categorias abaixo, interpretada pelos produtos da nota"
+          "classificacao_despesa": "categoria interpretada pelos produtos (veja categorias abaixo)"
         }}
 
-        REGRAS IMPORTANTES:
-        - O campo "classificacao_despesa" NÃO deve ser extraído diretamente da nota. Você deve INTERPRETAR os produtos e escolher a categoria mais adequada:
-        - INSUMOS AGRÍCOLAS: Sementes, Fertilizantes, Defensivos, Corretivos
-        - MANUTENÇÃO E OPERAÇÃO: Combustíveis, Peças, Parafusos, Componentes Mecânicos, Pneus, Filtros, Ferramentas
-        - RECURSOS HUMANOS: Mão de Obra, Salários
-        - SERVIÇOS OPERACIONAIS: Frete, Transporte, Colheita, Secagem, Armazenagem
-        - INFRAESTRUTURA E UTILIDADES: Energia Elétrica, Arrendamento, Construções, Materiais de Construção
-        - ADMINISTRATIVAS: Honorários, Despesas Bancárias
-        - SEGUROS E PROTEÇÃO: Seguro Agrícola, Seguro de Ativos
-        - IMPOSTOS E TAXAS: ITR, IPTU, IPVA
-        - INVESTIMENTOS: Aquisição de Máquinas, Veículos, Imóveis
-        - Se houver apenas uma parcela, coloque o array com um elemento. O valor da parcela deve ser igual ao valor total.
-        - Se não encontrar a data de vencimento, use a data de emissão.
-        - Use null para campos não encontrados.
+        REGRAS CRÍTICAS DE EXTRAÇÃO:
+        - NOME FANTASIA: procure o campo literalmente chamado NOME FANTASIA no cabeçalho. Se não existir esse campo explícito, coloque null — não invente.
+        - CNPJ do emitente: use SOMENTE o número após o rótulo "C.N.P.J." na seção do EMITENTE (cabeçalho). Remova pontos, barras e traços. Resultado: 14 dígitos.
+        - CNPJ/CPF do destinatário: use SOMENTE o número após "C.N.P.J." ou "C.P.F." na seção DESTINATÁRIO/COMPRADOR. São diferentes do emitente.
+        - ITENS: extraia TODOS os itens da tabela DADOS DOS PRODUTOS/SERVIÇOS, um objeto por linha.
+        - TOTAIS: preencha com os valores da seção de totais/cálculo do imposto. Use 0.00 se não encontrar (nunca null para valores numéricos).
+        - classificacao_despesa: interprete os produtos e escolha UMA categoria:
+          INSUMOS AGRÍCOLAS | MANUTENÇÃO E OPERAÇÃO | RECURSOS HUMANOS | SERVIÇOS OPERACIONAIS |
+          INFRAESTRUTURA E UTILIDADES | ADMINISTRATIVAS | SEGUROS E PROTEÇÃO | IMPOSTOS E TAXAS | INVESTIMENTOS
+        - Todos os valores monetários devem ser números com ponto decimal (ex: 1045.39). Nunca strings.
+        - Se não encontrar data de vencimento nas parcelas/duplicatas, use a data de emissão.
+        - Use null para campos de texto não encontrados.
 
         Texto do PDF:
         {texto}
@@ -181,7 +232,7 @@ def extrair_via_llm(
         texto_resposta = re.sub(r'^```json\s*', '', texto_resposta)
         texto_resposta = re.sub(r'```\s*$', '', texto_resposta)
         
-        json_match = re.search(r'\{{.*\}}', texto_resposta, re.DOTALL)
+        json_match = re.search(r'\{.*\}', texto_resposta, re.DOTALL)
         if json_match:
             dados = json.loads(json_match.group())
             return dados

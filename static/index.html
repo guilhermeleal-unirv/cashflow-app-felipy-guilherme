@@ -25,11 +25,11 @@
             display: flex;
             justify-content: center;
             padding: 2rem 1rem;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.15), transparent 25%),
                 radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.15), transparent 25%);
         }
-        .container { width: 100%; max-width: 680px; }
+        .container { width: 100%; max-width: 960px; }
         .glass-card {
             background: var(--card-bg);
             backdrop-filter: blur(12px);
@@ -49,13 +49,13 @@
         p.subtitle { text-align: center; color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; }
         .form-group { margin-bottom: 1.25rem; }
         label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-muted); }
-        input[type="text"], input[type="file"] {
+        input[type="text"], input[type="password"], input[type="file"] {
             width: 100%; padding: 0.75rem 1rem;
             background: rgba(15,23,42,0.6); border: 1px solid var(--border);
             border-radius: 12px; color: var(--text-color); font-size: 1rem;
             outline: none; transition: all 0.3s ease;
         }
-        input[type="text"]:focus, input[type="file"]:focus {
+        input[type="text"]:focus, input[type="password"]:focus, input[type="file"]:focus {
             border-color: var(--primary); box-shadow: 0 0 0 3px rgba(16,185,129,0.2);
         }
         input[type="file"]::file-selector-button {
@@ -81,17 +81,14 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Resultado */
-        .result-container {
-            margin-top: 2rem; display: none; animation: fadeIn 0.5s ease;
-        }
+        /* ── Resultado ── */
+        .result-container { margin-top: 2rem; display: none; animation: fadeIn 0.5s ease; }
         .result-header {
             font-size: 1rem; font-weight: 700; color: var(--primary);
             margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;
         }
-        .result-header::after {
-            content: ''; flex: 1; height: 1px; background: var(--border);
-        }
+        .result-header::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
         .result-section {
             background: var(--section-bg); border: 1px solid var(--border);
             border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem;
@@ -100,31 +97,99 @@
             font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
             letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.75rem;
         }
+
+        /* Grid de campos */
+        .fields-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 2rem;
+        }
+        .fields-grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0 1.5rem;
+        }
+        @media (max-width: 600px) {
+            .fields-grid, .fields-grid-3 { grid-template-columns: 1fr; }
+        }
+
         .field-row {
             display: flex; justify-content: space-between; align-items: flex-start;
             gap: 1rem; padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.04);
         }
         .field-row:last-child { border-bottom: none; }
-        .field-label { color: var(--text-muted); font-size: 0.875rem; flex-shrink: 0; }
-        .field-value { font-weight: 600; font-size: 0.9rem; text-align: right; word-break: break-word; }
+        .field-label { color: var(--text-muted); font-size: 0.82rem; flex-shrink: 0; }
+        .field-value { font-weight: 600; font-size: 0.88rem; text-align: right; word-break: break-word; }
+        .field-value.mono { font-family: monospace; font-size: 0.82rem; }
+
         .badge {
             display: inline-block; background: rgba(16,185,129,0.15);
             color: var(--primary); border: 1px solid rgba(16,185,129,0.3);
             border-radius: 999px; padding: 0.2rem 0.75rem; font-size: 0.8rem; font-weight: 600;
         }
-        .valor-destaque {
-            font-size: 1.25rem; color: var(--primary); font-weight: 700;
+        .valor-destaque { font-size: 1.2rem; color: var(--primary); font-weight: 700; }
+
+        /* ── Tabela de Totais Fiscais ── */
+        .totais-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.6rem;
+            margin-top: 0.25rem;
         }
+        @media (max-width: 700px) { .totais-grid { grid-template-columns: repeat(2, 1fr); } }
+        .total-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 8px; padding: 0.6rem 0.75rem;
+        }
+        .total-card .tc-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+        .total-card .tc-value { font-size: 0.9rem; font-weight: 700; margin-top: 0.15rem; font-variant-numeric: tabular-nums; }
+        .total-card.highlight .tc-value { color: var(--primary); font-size: 1rem; }
+
+        /* ── Tabela de Itens ── */
+        .items-table-wrapper { overflow-x: auto; margin-top: 0.5rem; border-radius: 8px; }
+        .items-table {
+            width: 100%; border-collapse: collapse;
+            font-size: 0.8rem; min-width: 700px;
+        }
+        .items-table thead th {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--primary);
+            font-weight: 600; font-size: 0.7rem;
+            text-transform: uppercase; letter-spacing: 0.04em;
+            padding: 0.55rem 0.7rem; text-align: left;
+            border-bottom: 1px solid rgba(16,185,129,0.25);
+            white-space: nowrap;
+        }
+        .items-table thead th.num { text-align: right; }
+        .items-table tbody tr {
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            transition: background 0.15s;
+        }
+        .items-table tbody tr:last-child { border-bottom: none; }
+        .items-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+        .items-table tbody td { padding: 0.5rem 0.7rem; vertical-align: middle; }
+        .items-table tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        .items-table tbody td.code { font-family: monospace; font-size: 0.75rem; color: var(--text-muted); }
+        .items-table tfoot td {
+            padding: 0.6rem 0.7rem; border-top: 1px solid var(--border); font-weight: 700;
+        }
+        .items-table tfoot .total-label { color: var(--text-muted); }
+        .items-table tfoot .total-value { text-align: right; color: var(--primary); }
+
+        /* ── Parcelas ── */
         .parcela-item {
             display: flex; justify-content: space-between;
             padding: 0.4rem 0.75rem; border-radius: 8px;
             background: rgba(255,255,255,0.04); margin-top: 0.5rem;
         }
+
+        /* ── JSON ── */
         pre.json-raw {
             background: rgba(0,0,0,0.3); border-radius: 8px; padding: 1rem;
-            font-size: 0.78rem; overflow-x: auto; color: #a3e635;
+            font-size: 0.75rem; overflow-x: auto; color: #a3e635;
             white-space: pre-wrap; word-break: break-word; margin-top: 0.5rem;
-            max-height: 300px; overflow-y: auto;
+            max-height: 320px; overflow-y: auto;
         }
         .toggle-json {
             cursor: pointer; color: var(--text-muted); font-size: 0.8rem;
@@ -156,48 +221,159 @@
         <div class="result-container" id="resultContainer">
             <div class="result-header">Dados Extraídos</div>
 
-            <!-- Fornecedor -->
+            <!-- ── NF Header ── -->
             <div class="result-section">
-                <div class="section-title">📦 Fornecedor</div>
-                <div class="field-row"><span class="field-label">Razão Social</span><span class="field-value" id="r-razao">—</span></div>
-                <div class="field-row"><span class="field-label">Fantasia</span><span class="field-value" id="r-fantasia">—</span></div>
-                <div class="field-row"><span class="field-label">CNPJ</span><span class="field-value" id="r-cnpj">—</span></div>
+                <div class="section-title">🧾 Identificação da Nota Fiscal</div>
+                <div class="fields-grid-3">
+                    <div class="field-row"><span class="field-label">Número</span><span class="field-value" id="r-nf-numero">—</span></div>
+                    <div class="field-row"><span class="field-label">Série</span><span class="field-value" id="r-nf-serie">—</span></div>
+                    <div class="field-row"><span class="field-label">Data de Emissão</span><span class="field-value" id="r-nf-emissao">—</span></div>
+                    <div class="field-row"><span class="field-label">Natureza da Operação</span><span class="field-value" id="r-nf-natureza">—</span></div>
+                    <div class="field-row"><span class="field-label">Tipo de Operação</span><span class="field-value" id="r-nf-tipo">—</span></div>
+                </div>
             </div>
 
-            <!-- Faturado -->
+            <!-- ── Emitente ── -->
             <div class="result-section">
-                <div class="section-title">👤 Faturado Para</div>
-                <div class="field-row"><span class="field-label">Nome Completo</span><span class="field-value" id="r-nome">—</span></div>
-                <div class="field-row"><span class="field-label">CPF</span><span class="field-value" id="r-cpf">—</span></div>
+                <div class="section-title">🏭 Emitente (Fornecedor)</div>
+                <div class="fields-grid">
+                    <div class="field-row"><span class="field-label">Razão Social</span><span class="field-value" id="r-em-razao">—</span></div>
+                    <div class="field-row"><span class="field-label">Nome Fantasia</span><span class="field-value" id="r-em-fantasia">—</span></div>
+                    <div class="field-row"><span class="field-label">CNPJ</span><span class="field-value mono" id="r-em-cnpj">—</span></div>
+                    <div class="field-row"><span class="field-label">IE</span><span class="field-value mono" id="r-em-ie">—</span></div>
+                    <div class="field-row"><span class="field-label">Endereço</span><span class="field-value" id="r-em-end">—</span></div>
+                    <div class="field-row"><span class="field-label">Município / UF</span><span class="field-value" id="r-em-mun">—</span></div>
+                    <div class="field-row"><span class="field-label">CEP</span><span class="field-value mono" id="r-em-cep">—</span></div>
+                    <div class="field-row"><span class="field-label">Telefone</span><span class="field-value" id="r-em-fone">—</span></div>
+                </div>
             </div>
 
-            <!-- Nota Fiscal -->
+            <!-- ── Destinatário ── -->
             <div class="result-section">
-                <div class="section-title">🧾 Nota Fiscal</div>
-                <div class="field-row"><span class="field-label">Número NF</span><span class="field-value" id="r-nf">—</span></div>
-                <div class="field-row"><span class="field-label">Data de Emissão</span><span class="field-value" id="r-emissao">—</span></div>
-                <div class="field-row"><span class="field-label">Valor Total</span><span class="field-value valor-destaque" id="r-valor">—</span></div>
+                <div class="section-title">👤 Destinatário (Comprador)</div>
+                <div class="fields-grid">
+                    <div class="field-row"><span class="field-label">Nome / Razão Social</span><span class="field-value" id="r-dest-nome">—</span></div>
+                    <div class="field-row"><span class="field-label">CNPJ / CPF</span><span class="field-value mono" id="r-dest-cnpj">—</span></div>
+                    <div class="field-row"><span class="field-label">IE</span><span class="field-value mono" id="r-dest-ie">—</span></div>
+                    <div class="field-row"><span class="field-label">Endereço</span><span class="field-value" id="r-dest-end">—</span></div>
+                    <div class="field-row"><span class="field-label">Município / UF</span><span class="field-value" id="r-dest-mun">—</span></div>
+                </div>
             </div>
 
-            <!-- Produtos -->
+            <!-- ── Totais Fiscais ── -->
             <div class="result-section">
-                <div class="section-title">🛒 Descrição dos Produtos</div>
-                <p id="r-produtos" style="font-size:0.9rem; line-height:1.5; color: var(--text-color);">—</p>
+                <div class="section-title">💰 Totais e Tributos</div>
+                <div class="totais-grid">
+                    <div class="total-card highlight">
+                        <div class="tc-label">Valor Total da Nota</div>
+                        <div class="tc-value" id="r-t-total-nota">—</div>
+                    </div>
+                    <div class="total-card">
+                        <div class="tc-label">Total dos Produtos</div>
+                        <div class="tc-value" id="r-t-total-prod">—</div>
+                    </div>
+                    <div class="total-card">
+                        <div class="tc-label">BC ICMS</div>
+                        <div class="tc-value" id="r-t-bc-icms">—</div>
+                    </div>
+                    <div class="total-card">
+                        <div class="tc-label">Valor ICMS</div>
+                        <div class="tc-value" id="r-t-icms">—</div>
+                    </div>
+                    <div class="total-card">
+                        <div class="tc-label">Valor IPI</div>
+                        <div class="tc-value" id="r-t-ipi">—</div>
+                    </div>
+                    <div class="total-card">
+                        <div class="tc-label">Valor PIS</div>
+                        <div class="tc-value" id="r-t-pis">—</div>
+                    </div>
+                    <div class="total-card">
+                        <div class="tc-label">Valor COFINS</div>
+                        <div class="tc-value" id="r-t-cofins">—</div>
+                    </div>
+                    <div class="total-card">
+                        <div class="tc-label">Frete</div>
+                        <div class="tc-value" id="r-t-frete">—</div>
+                    </div>
+                    <div class="total-card">
+                        <div class="tc-label">Seguro</div>
+                        <div class="tc-value" id="r-t-seguro">—</div>
+                    </div>
+                    <div class="total-card">
+                        <div class="tc-label">Desconto</div>
+                        <div class="tc-value" id="r-t-desconto">—</div>
+                    </div>
+                    <div class="total-card">
+                        <div class="tc-label">Outras Despesas</div>
+                        <div class="tc-value" id="r-t-outras">—</div>
+                    </div>
+                    <div class="total-card">
+                        <div class="tc-label">BC ICMS ST</div>
+                        <div class="tc-value" id="r-t-bc-st">—</div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Classificação -->
+            <!-- ── Itens ── -->
+            <div class="result-section">
+                <div class="section-title">🛒 Dados dos Produtos / Serviços</div>
+                <div class="items-table-wrapper">
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Descrição</th>
+                                <th>NCM</th>
+                                <th>CST</th>
+                                <th>CFOP</th>
+                                <th>UN</th>
+                                <th class="num">Qtd.</th>
+                                <th class="num">V. Unit.</th>
+                                <th class="num">V. Total</th>
+                                <th class="num">BC ICMS</th>
+                                <th class="num">V. ICMS</th>
+                                <th class="num">Alíq. ICMS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="r-itens-body">
+                            <tr><td colspan="12" style="text-align:center;color:var(--text-muted);padding:1rem;">—</td></tr>
+                        </tbody>
+                        <tfoot id="r-itens-foot" style="display:none">
+                            <tr>
+                                <td colspan="8" class="total-label">Total dos Itens</td>
+                                <td class="total-value" id="r-total-itens">—</td>
+                                <td colspan="3"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ── Transportador ── -->
+            <div class="result-section">
+                <div class="section-title">🚚 Transportador</div>
+                <div class="fields-grid">
+                    <div class="field-row"><span class="field-label">Razão Social</span><span class="field-value" id="r-tr-razao">—</span></div>
+                    <div class="field-row"><span class="field-label">CNPJ / CPF</span><span class="field-value mono" id="r-tr-cnpj">—</span></div>
+                    <div class="field-row"><span class="field-label">Frete por Conta</span><span class="field-value" id="r-tr-frete">—</span></div>
+                    <div class="field-row"><span class="field-label">Placa / UF</span><span class="field-value" id="r-tr-placa">—</span></div>
+                </div>
+            </div>
+
+            <!-- ── Classificação ── -->
             <div class="result-section">
                 <div class="section-title">🏷️ Classificação da Despesa</div>
                 <span class="badge" id="r-classificacao">—</span>
             </div>
 
-            <!-- Parcelas -->
+            <!-- ── Parcelas ── -->
             <div class="result-section">
-                <div class="section-title">📅 Parcelas</div>
+                <div class="section-title">📅 Parcelas / Duplicatas</div>
                 <div id="r-parcelas"></div>
             </div>
 
-            <!-- JSON bruto -->
+            <!-- ── JSON bruto ── -->
             <span class="toggle-json" id="toggleJson" onclick="toggleJson()">Ver JSON bruto</span>
             <pre class="json-raw" id="jsonRaw" style="display:none"></pre>
         </div>
@@ -205,53 +381,144 @@
 </div>
 
 <script>
-    let rawData = null;
-
     function fmt(val) {
-        return (val === null || val === undefined || val === '') ? '—' : val;
+        return (val === null || val === undefined || val === '') ? '—' : String(val);
+    }
+
+    function fmtBRL(val) {
+        if (val === null || val === undefined || val === 0) return 'R$ 0,00';
+        return 'R$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function fmtQtd(val) {
+        if (val === null || val === undefined) return '—';
+        return Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 4 });
+    }
+
+    function fmtTipoOp(val) {
+        if (val === null || val === undefined) return '—';
+        return val == 0 ? '0 – Entrada' : val == 1 ? '1 – Saída' : fmt(val);
+    }
+
+    function fmtFrete(val) {
+        const map = { '0': '0 – Emitente', '1': '1 – Destinatário', '9': '9 – Sem Frete' };
+        return map[String(val)] || fmt(val);
     }
 
     function toggleJson() {
         const el = document.getElementById('jsonRaw');
         const btn = document.getElementById('toggleJson');
-        if (el.style.display === 'none') {
-            el.style.display = 'block';
-            btn.textContent = 'Ocultar JSON bruto';
-        } else {
-            el.style.display = 'none';
-            btn.textContent = 'Ver JSON bruto';
-        }
+        const hidden = el.style.display === 'none';
+        el.style.display = hidden ? 'block' : 'none';
+        btn.textContent = hidden ? 'Ocultar JSON bruto' : 'Ver JSON bruto';
     }
 
     function renderResult(data) {
-        rawData = data;
+        // ── NF ──
+        const nf = data.nota_fiscal || {};
+        document.getElementById('r-nf-numero').textContent   = fmt(nf.numero);
+        document.getElementById('r-nf-serie').textContent    = fmt(nf.serie);
+        document.getElementById('r-nf-emissao').textContent  = fmt(nf.data_emissao);
+        document.getElementById('r-nf-natureza').textContent = fmt(nf.natureza_operacao);
+        document.getElementById('r-nf-tipo').textContent     = fmtTipoOp(nf.tipo_operacao);
 
-        document.getElementById('r-razao').textContent = fmt(data.fornecedor?.razao_social);
-        document.getElementById('r-fantasia').textContent = fmt(data.fornecedor?.fantasia);
-        document.getElementById('r-cnpj').textContent = fmt(data.fornecedor?.cnpj);
-        document.getElementById('r-nome').textContent = fmt(data.faturado?.nome_completo);
-        document.getElementById('r-cpf').textContent = fmt(data.faturado?.cpf);
-        document.getElementById('r-nf').textContent = fmt(data.numero_nota_fiscal);
-        document.getElementById('r-emissao').textContent = fmt(data.data_emissao);
-        document.getElementById('r-valor').textContent = data.valor_total ? `R$ ${Number(data.valor_total).toFixed(2)}` : '—';
-        document.getElementById('r-produtos').textContent = fmt(data.descricao_produtos);
+        // ── Emitente ──
+        const em = data.emitente || {};
+        document.getElementById('r-em-razao').textContent   = fmt(em.razao_social);
+        document.getElementById('r-em-fantasia').textContent = fmt(em.fantasia);
+        document.getElementById('r-em-cnpj').textContent    = fmt(em.cnpj);
+        document.getElementById('r-em-ie').textContent      = fmt(em.ie);
+        document.getElementById('r-em-end').textContent     = fmt(em.endereco);
+        document.getElementById('r-em-mun').textContent     = em.municipio && em.uf ? `${em.municipio} / ${em.uf}` : fmt(em.municipio || em.uf);
+        document.getElementById('r-em-cep').textContent     = fmt(em.cep);
+        document.getElementById('r-em-fone').textContent    = fmt(em.fone);
+
+        // ── Destinatário ──
+        const dest = data.destinatario || {};
+        document.getElementById('r-dest-nome').textContent  = fmt(dest.nome_razao);
+        document.getElementById('r-dest-cnpj').textContent  = fmt(dest.cnpj_cpf);
+        document.getElementById('r-dest-ie').textContent    = fmt(dest.ie);
+        document.getElementById('r-dest-end').textContent   = fmt(dest.endereco);
+        document.getElementById('r-dest-mun').textContent   = dest.municipio && dest.uf ? `${dest.municipio} / ${dest.uf}` : fmt(dest.municipio || dest.uf);
+
+        // ── Totais ──
+        const t = data.totais || {};
+        document.getElementById('r-t-total-nota').textContent  = fmtBRL(t.valor_total_nota);
+        document.getElementById('r-t-total-prod').textContent  = fmtBRL(t.valor_total_produtos);
+        document.getElementById('r-t-bc-icms').textContent     = fmtBRL(t.bc_icms);
+        document.getElementById('r-t-icms').textContent        = fmtBRL(t.valor_icms);
+        document.getElementById('r-t-ipi').textContent         = fmtBRL(t.valor_ipi);
+        document.getElementById('r-t-pis').textContent         = fmtBRL(t.valor_pis);
+        document.getElementById('r-t-cofins').textContent      = fmtBRL(t.valor_cofins);
+        document.getElementById('r-t-frete').textContent       = fmtBRL(t.valor_frete);
+        document.getElementById('r-t-seguro').textContent      = fmtBRL(t.valor_seguro);
+        document.getElementById('r-t-desconto').textContent    = fmtBRL(t.desconto);
+        document.getElementById('r-t-outras').textContent      = fmtBRL(t.outras_despesas);
+        document.getElementById('r-t-bc-st').textContent       = fmtBRL(t.bc_icms_st);
+
+        // ── Itens ──
+        const tbody = document.getElementById('r-itens-body');
+        const tfoot = document.getElementById('r-itens-foot');
+        tbody.innerHTML = '';
+        const itens = data.itens || [];
+        if (itens.length > 0) {
+            let somaTotal = 0;
+            itens.forEach(item => {
+                somaTotal += Number(item.valor_total) || 0;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="code">${fmt(item.codigo)}</td>
+                    <td>${fmt(item.descricao)}</td>
+                    <td class="code">${fmt(item.ncm)}</td>
+                    <td class="code">${fmt(item.cst)}</td>
+                    <td class="code">${fmt(item.cfop)}</td>
+                    <td>${fmt(item.unidade)}</td>
+                    <td class="num">${fmtQtd(item.quantidade)}</td>
+                    <td class="num">${fmtBRL(item.valor_unitario)}</td>
+                    <td class="num" style="color:var(--primary);font-weight:600">${fmtBRL(item.valor_total)}</td>
+                    <td class="num">${fmtBRL(item.bc_icms)}</td>
+                    <td class="num">${fmtBRL(item.valor_icms)}</td>
+                    <td class="num">${item.aliquota_icms != null ? item.aliquota_icms + '%' : '—'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('r-total-itens').textContent = fmtBRL(somaTotal);
+            tfoot.style.display = '';
+        } else {
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--text-muted);padding:1rem;">Nenhum item identificado</td></tr>';
+            tfoot.style.display = 'none';
+        }
+
+        // ── Transportador ──
+        const tr = data.transportador || {};
+        document.getElementById('r-tr-razao').textContent = fmt(tr.razao_social);
+        document.getElementById('r-tr-cnpj').textContent  = fmt(tr.cnpj_cpf);
+        document.getElementById('r-tr-frete').textContent = fmtFrete(tr.frete_por_conta);
+        document.getElementById('r-tr-placa').textContent = (tr.placa_veiculo || tr.uf_veiculo)
+            ? [tr.placa_veiculo, tr.uf_veiculo].filter(Boolean).join(' / ')
+            : '—';
+
+        // ── Classificação ──
         document.getElementById('r-classificacao').textContent = fmt(data.classificacao_despesa);
 
+        // ── Parcelas ──
         const parcelasEl = document.getElementById('r-parcelas');
         parcelasEl.innerHTML = '';
-        if (data.parcelas && data.parcelas.length > 0) {
-            data.parcelas.forEach(p => {
+        const parcelas = data.parcelas || [];
+        if (parcelas.length > 0) {
+            parcelas.forEach(p => {
                 parcelasEl.innerHTML += `
                     <div class="parcela-item">
                         <span>Parcela ${p.numero}</span>
                         <span>${fmt(p.data_vencimento)}</span>
-                        <span style="color:var(--primary);font-weight:600">R$ ${Number(p.valor).toFixed(2)}</span>
+                        <span style="color:var(--primary);font-weight:600">${fmtBRL(p.valor)}</span>
                     </div>`;
             });
         } else {
             parcelasEl.innerHTML = '<span style="color:var(--text-muted)">Não identificado</span>';
         }
 
+        // ── JSON bruto ──
         document.getElementById('jsonRaw').textContent = JSON.stringify(data, null, 2);
         document.getElementById('resultContainer').style.display = 'block';
         document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -259,11 +526,11 @@
 
     document.getElementById('extractForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const fileInput = document.getElementById('pdfFile');
+        const fileInput   = document.getElementById('pdfFile');
         const apiKeyInput = document.getElementById('apiKey');
-        const btn = document.getElementById('submitBtn');
-        const btnText = document.getElementById('btnText');
-        const btnLoader = document.getElementById('btnLoader');
+        const btn         = document.getElementById('submitBtn');
+        const btnText     = document.getElementById('btnText');
+        const btnLoader   = document.getElementById('btnLoader');
 
         if (!fileInput.files[0] || !apiKeyInput.value) return;
 
