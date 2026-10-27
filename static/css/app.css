@@ -116,3 +116,54 @@ table.grid td.empty { text-align: center; color: var(--muted); padding: 2rem; }
 .btn.loading .loader { display: inline-block; }
 .hidden { display: none !important; }
 @media (max-width: 800px) { body { flex-direction: column; } .sidebar { width: 100%; height: auto; position: static; display: flex; flex-wrap: wrap; gap: .3rem; } .brand, .nav-sep { width: 100%; margin: .3rem 0; } .nav-btn { width: auto; } }
+
+/* ── Status do Git / GitHub ── */
+.git-status-bar {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .6rem;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 999px;
+  padding: .35rem .85rem;
+  margin-bottom: 1.2rem;
+  font-size: .8rem;
+  color: var(--muted);
+  box-shadow: 0 4px 14px -3px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+}
+.git-badge-pill {
+  font-weight: 700;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+}
+.git-label {
+  color: var(--muted);
+}
+.git-link-tag {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: .82rem;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  padding: .15rem .55rem;
+  border-radius: 6px;
+  text-decoration: none;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  transition: all .2s;
+  letter-spacing: .02em;
+}
+.git-link-tag:hover {
+  background: rgba(56, 189, 248, 0.25);
+  color: #7dd3fc;
+  border-color: rgba(56, 189, 248, 0.5);
+  transform: translateY(-1px);
+}
+.git-time {
+  font-size: .75rem;
+  color: var(--muted);
+  opacity: .85;
+}

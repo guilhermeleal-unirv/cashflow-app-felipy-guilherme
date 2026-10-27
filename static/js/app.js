@@ -206,4 +206,61 @@ $id('btnLogout').addEventListener('click', () => {
   }
 });
 
+// ── Código da Última Atualização no GitHub ──
+async function carregarInfoGit() {
+  const elSha = $id('gitCommitSha');
+  const elTime = $id('gitCommitTime');
+  const elSide = $id('sidebarGitSha');
+  const repoUrl = 'https://github.com/guilhermeleal-unirv/cashflow-app-felipy-guilherme';
+
+  const aplicarGit = (sha, url, dataIso, msg) => {
+    const shortSha = (sha || '').slice(0, 7) || 'ver repo';
+    const linkUrl = url || (sha ? `${repoUrl}/commit/${sha}` : `${repoUrl}/commits/main`);
+
+    if (elSha) {
+      elSha.textContent = shortSha;
+      elSha.href = linkUrl;
+      if (msg) elSha.title = `Commit: ${msg.split('\n')[0]}`;
+    }
+    if (elSide) {
+      elSide.textContent = shortSha;
+      elSide.href = linkUrl;
+    }
+    if (elTime && dataIso) {
+      try {
+        const d = new Date(dataIso);
+        const fmt = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        elTime.textContent = `• ${fmt}`;
+      } catch (_) {}
+    }
+  };
+
+  try {
+    // 1. Tenta API pública do GitHub em tempo real (dados da branch main)
+    const ghRes = await fetch('https://api.github.com/repos/guilhermeleal-unirv/cashflow-app-felipy-guilherme/commits/main', {
+      headers: { 'Accept': 'application/vnd.github.v3+json' },
+      cache: 'no-cache'
+    });
+    if (ghRes.ok) {
+      const gh = await ghRes.json();
+      aplicarGit(gh.sha, gh.html_url, gh.commit?.author?.date, gh.commit?.message);
+      return;
+    }
+  } catch (_) {
+    // Continua para o fallback
+  }
+
+  try {
+    // 2. Fallback via backend /info-git (Render env RENDER_GIT_COMMIT ou git local)
+    const beRes = await fetch('/info-git');
+    if (beRes.ok) {
+      const be = await beRes.json();
+      aplicarGit(be.commit_sha, be.commit_url);
+    }
+  } catch (_) {
+    if (elSha) elSha.textContent = 'main';
+  }
+}
+
 checkAuth();
+carregarInfoGit();

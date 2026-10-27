@@ -26,6 +26,10 @@
             <span class="user-name" id="userNameLabel">joao.paraiba</span>
         </div>
         <button class="btn sm danger" id="btnLogout" title="Encerrar sessão" style="margin:0; width:100%;">Sair</button>
+        <div style="font-size: 0.72rem; color: var(--muted); text-align: center; margin-top: 0.2rem;">
+            <span>GitHub: </span>
+            <a href="https://github.com/guilhermeleal-unirv/cashflow-app-felipy-guilherme/commits/main" target="_blank" class="git-link-tag" id="sidebarGitSha">...</a>
+        </div>
     </div>
 </aside>
 
@@ -33,6 +37,12 @@
     <!-- ═══ Lançar via IA (Etapa 1 + Etapa 2) ═══ -->
     <section class="view active" id="v-lancar">
         <div class="card">
+            <div class="git-status-bar" id="gitStatusBar">
+                <span class="git-badge-pill">🐙 GitHub</span>
+                <span class="git-label">Última Atualização:</span>
+                <a href="https://github.com/guilhermeleal-unirv/cashflow-app-felipy-guilherme/commits/main" target="_blank" class="git-link-tag" id="gitCommitSha" title="Clique para abrir o commit no GitHub">Carregando...</a>
+                <span class="git-time" id="gitCommitTime"></span>
+            </div>
             <h1 class="title">Lançar Nota Fiscal via IA</h1>
             <p class="subtitle">Extrai os dados do DANFE, consulta o banco e lança a conta a pagar.</p>
             <form id="extractForm" class="row">

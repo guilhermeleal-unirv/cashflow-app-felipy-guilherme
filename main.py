@@ -65,6 +65,31 @@ import os
 os.makedirs("static", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+import subprocess
+
+@app.get("/info-git", include_in_schema=False)
+def info_git():
+    """Retorna o código da última atualização no GitHub (commit SHA, data, link)."""
+    commit_sha = os.getenv("RENDER_GIT_COMMIT")
+    if not commit_sha:
+        try:
+            commit_sha = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL
+            ).decode("utf-8").strip()
+        except Exception:
+            commit_sha = None
+
+    short_sha = commit_sha[:7] if commit_sha else None
+    repo_url = "https://github.com/guilhermeleal-unirv/cashflow-app-felipy-guilherme"
+    commit_url = f"{repo_url}/commit/{commit_sha}" if commit_sha else f"{repo_url}/commits/main"
+
+    return {
+        "commit_sha": commit_sha,
+        "short_sha": short_sha,
+        "commit_url": commit_url,
+        "repo_url": repo_url
+    }
+
 from fastapi.responses import RedirectResponse
 
 @app.get("/", include_in_schema=False)
