@@ -2,59 +2,82 @@ from typing import Optional, List
 from datetime import date, datetime
 from sqlmodel import SQLModel, Field, Relationship
 
+# Valores permitidos para o campo STATUS (exclusão lógica)
+STATUS_ATIVO = "ATIVO"
+STATUS_INATIVO = "INATIVO"
+
 # ==========================================
-# Titular
+# Titular (PESSOAS - Tipo FATURADO)
 # ==========================================
 class TitularBase(SQLModel):
-    nome: str
-    cpf_cnpj: str
+    nome: str = Field(index=True)
+    cpf_cnpj: str = Field(index=True)
 
 class Titular(TitularBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    status: str = Field(default=STATUS_ATIVO, index=True)
     registros: List["RegistroFinanceiro"] = Relationship(back_populates="titular")
 
 class TitularCreate(TitularBase):
-    pass
+    pass  # STATUS oculto: o servidor força ATIVO
+
+class TitularUpdate(SQLModel):
+    nome: Optional[str] = None
+    cpf_cnpj: Optional[str] = None
 
 class TitularRead(TitularBase):
     id: int
+    status: str
 
 
 # ==========================================
-# Parceiro
+# Parceiro (PESSOAS - Tipo CLIENTE / FORNECEDOR)
 # ==========================================
 class ParceiroBase(SQLModel):
-    nome_razao: str
-    cnpj_cpf: str
-    tipo: str  # Ex: Fornecedor, Cliente
+    nome_razao: str = Field(index=True)
+    cnpj_cpf: str = Field(index=True)
+    tipo: str  # FORNECEDOR ou CLIENTE
 
 class Parceiro(ParceiroBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    status: str = Field(default=STATUS_ATIVO, index=True)
     registros: List["RegistroFinanceiro"] = Relationship(back_populates="parceiro")
 
 class ParceiroCreate(ParceiroBase):
     pass
 
+class ParceiroUpdate(SQLModel):
+    nome_razao: Optional[str] = None
+    cnpj_cpf: Optional[str] = None
+    tipo: Optional[str] = None
+
 class ParceiroRead(ParceiroBase):
     id: int
+    status: str
 
 
 # ==========================================
-# Categoria
+# Categoria (CLASSIFICACAO - Tipo DESPESA / RECEITA)
 # ==========================================
 class CategoriaBase(SQLModel):
-    nome: str
-    tipo: str  # Ex: Insumos, Operacional, Venda (Receita)
+    nome: str = Field(index=True)  # descrição da classificação
+    tipo: str  # DESPESA ou RECEITA
 
 class Categoria(CategoriaBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    status: str = Field(default=STATUS_ATIVO, index=True)
     registros: List["RegistroFinanceiro"] = Relationship(back_populates="categoria")
 
 class CategoriaCreate(CategoriaBase):
     pass
 
+class CategoriaUpdate(SQLModel):
+    nome: Optional[str] = None
+    tipo: Optional[str] = None
+
 class CategoriaRead(CategoriaBase):
     id: int
+    status: str
 
 
 # ==========================================
@@ -77,11 +100,12 @@ class DocumentoPDFRead(DocumentoPDFBase):
 
 
 # ==========================================
-# RegistroFinanceiro
+# RegistroFinanceiro (MOVIMENTOCONTAS)
 # ==========================================
 class RegistroFinanceiroBase(SQLModel):
     valor_total: float
     data_emissao: date
+    tipo: str = Field(default="APAGAR", index=True)  # APAGAR ou ARECEBER
     titular_id: Optional[int] = Field(default=None, foreign_key="titular.id")
     parceiro_id: Optional[int] = Field(default=None, foreign_key="parceiro.id")
     categoria_id: Optional[int] = Field(default=None, foreign_key="categoria.id")
@@ -89,12 +113,13 @@ class RegistroFinanceiroBase(SQLModel):
 
 class RegistroFinanceiro(RegistroFinanceiroBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    
+    status: str = Field(default=STATUS_ATIVO, index=True)
+
     titular: Optional[Titular] = Relationship(back_populates="registros")
     parceiro: Optional[Parceiro] = Relationship(back_populates="registros")
     categoria: Optional[Categoria] = Relationship(back_populates="registros")
     documento_pdf: Optional[DocumentoPDF] = Relationship(back_populates="registros")
-    
+
     parcelas: List["Parcela"] = Relationship(back_populates="registro_financeiro")
 
 class RegistroFinanceiroCreate(RegistroFinanceiroBase):
@@ -102,10 +127,19 @@ class RegistroFinanceiroCreate(RegistroFinanceiroBase):
 
 class RegistroFinanceiroRead(RegistroFinanceiroBase):
     id: int
+    status: str
 
 
 # ==========================================
-# Parcela
+# RegistroCategoria (um movimento pode ter 1..N classificações)
+# ==========================================
+class RegistroCategoria(SQLModel, table=True):
+    registro_id: int = Field(foreign_key="registrofinanceiro.id", primary_key=True)
+    categoria_id: int = Field(foreign_key="categoria.id", primary_key=True)
+
+
+# ==========================================
+# Parcela (PARCELACONTAS)
 # ==========================================
 class ParcelaBase(SQLModel):
     numero_parcela: int

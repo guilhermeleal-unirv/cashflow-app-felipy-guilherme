@@ -201,3 +201,10 @@ LÃ¡ vocÃª encontra todos os endpoints documentados e pode testÃ¡-los diretamente
 ---
 
 Desenvolvido por **Guilherme Leal** e **Felipy Chimango** â€” N2 Engenharia de Software ðŸŽ“
+
+## N2 - Etapa 2
+- Tela inicial: `/` (SPA em `static/`). Lançar via IA: extrai o DANFE, consulta Fornecedor/Faturado/Despesa (EXISTE/NÃO EXISTE), cria o que faltar e lança o movimento A PAGAR com parcelas (`POST /documentos/verificar` e `/documentos/lancar`).
+- CRUDs com exclusão lógica (STATUS ATIVO/INATIVO, reativação): `/parceiros`, `/titulares`, `/categorias`, `/registros`.
+- Migração automática das colunas novas no startup (`integration/migrations.py`).
+- Testes: `python -m pytest -q tests`.
+- Deploy: `render.yaml` (Render Blueprint, Postgres incluso).

@@ -1,11 +1,12 @@
 from .user import User, UserBase, UserCreate, UserUpdate, UserLogin, UserRead
 from .token import Token, TokenData
 from .financeiro import (
-    Titular, TitularBase, TitularCreate, TitularRead,
-    Parceiro, ParceiroBase, ParceiroCreate, ParceiroRead,
-    Categoria, CategoriaBase, CategoriaCreate, CategoriaRead,
+    Titular, TitularBase, TitularCreate, TitularUpdate, TitularRead,
+    Parceiro, ParceiroBase, ParceiroCreate, ParceiroUpdate, ParceiroRead,
+    Categoria, CategoriaBase, CategoriaCreate, CategoriaUpdate, CategoriaRead,
     DocumentoPDF, DocumentoPDFBase, DocumentoPDFCreate, DocumentoPDFRead,
     RegistroFinanceiro, RegistroFinanceiroBase, RegistroFinanceiroCreate, RegistroFinanceiroRead,
+    RegistroCategoria,
     Parcela, ParcelaBase, ParcelaCreate, ParcelaRead,
     DepositoBaixa, DepositoBaixaBase, DepositoBaixaCreate, DepositoBaixaRead
 )
@@ -13,11 +14,12 @@ from .financeiro import (
 __all__ = [
     "User", "UserBase", "UserCreate", "UserUpdate", "UserLogin", "UserRead",
     "Token", "TokenData",
-    "Titular", "TitularBase", "TitularCreate", "TitularRead",
-    "Parceiro", "ParceiroBase", "ParceiroCreate", "ParceiroRead",
-    "Categoria", "CategoriaBase", "CategoriaCreate", "CategoriaRead",
+    "Titular", "TitularBase", "TitularCreate", "TitularUpdate", "TitularRead",
+    "Parceiro", "ParceiroBase", "ParceiroCreate", "ParceiroUpdate", "ParceiroRead",
+    "Categoria", "CategoriaBase", "CategoriaCreate", "CategoriaUpdate", "CategoriaRead",
     "DocumentoPDF", "DocumentoPDFBase", "DocumentoPDFCreate", "DocumentoPDFRead",
     "RegistroFinanceiro", "RegistroFinanceiroBase", "RegistroFinanceiroCreate", "RegistroFinanceiroRead",
+    "RegistroCategoria",
     "Parcela", "ParcelaBase", "ParcelaCreate", "ParcelaRead",
     "DepositoBaixa", "DepositoBaixaBase", "DepositoBaixaCreate", "DepositoBaixaRead"
 ]

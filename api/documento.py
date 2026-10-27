@@ -10,6 +10,7 @@ import google.generativeai as genai
 import json
 import re
 from models.financeiro import DocumentoPDF, DocumentoPDFRead, RegistroFinanceiro, Parcela
+from services import lancamento_service
 
 documento_router = APIRouter(prefix="/documentos", tags=["Documentos"])
 
@@ -19,6 +20,27 @@ class AprovarPDFPayload(BaseModel):
     categoria_id: int
     valor_total: float
     data_vencimento: date
+
+class DadosExtraidosPayload(BaseModel):
+    """JSON devolvido por /extrair_via_llm (campos livres)."""
+    model_config = {"extra": "allow"}
+    nome_arquivo: Optional[str] = None
+
+@documento_router.post("/verificar")
+def verificar_dados(payload: DadosExtraidosPayload, session: SessionDep):
+    """Etapa 2: informa se Fornecedor / Faturado / Despesa EXISTEM no banco."""
+    return lancamento_service.verificar(session, payload.model_dump())
+
+@documento_router.post("/lancar")
+def lancar_documento(payload: DadosExtraidosPayload, session: SessionDep):
+    """Etapa 2: cria o que faltar + movimento A PAGAR + parcelas."""
+    dados = payload.model_dump()
+    try:
+        return lancamento_service.lancar(session, dados, dados.get("nome_arquivo"))
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao lançar registro: {e}")
 
 @documento_router.get("/", response_model=list[DocumentoPDFRead])
 def listar_documentos(

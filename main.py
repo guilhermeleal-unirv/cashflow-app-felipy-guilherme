@@ -62,3 +62,9 @@ app.include_router(registro_router)
 import os
 os.makedirs("static", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+from fastapi.responses import RedirectResponse
+
+@app.get("/", include_in_schema=False)
+def raiz():
+    return RedirectResponse(url="/static/index.html")
