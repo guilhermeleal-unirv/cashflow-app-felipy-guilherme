@@ -143,17 +143,18 @@ $id('btnLancar').addEventListener('click', async () => {
 window.showLoginModal = function() {
   $id('loginModal').style.display = 'flex';
   $id('loginError').classList.add('hidden');
-  $id('loginPassword').value = 'costelaoNoDomingo';
+  $id('loginUsername').value = '';
+  $id('loginPassword').value = '';
 };
 
 function checkAuth() {
   const token = localStorage.getItem('cashflow_token');
-  const user = localStorage.getItem('cashflow_user') || 'joao.paraiba';
+  const user = localStorage.getItem('cashflow_user');
   if (!token) {
     window.showLoginModal();
   } else {
     $id('loginModal').style.display = 'none';
-    $id('userNameLabel').textContent = user;
+    $id('userNameLabel').textContent = user || 'Usuário';
   }
 }
 
