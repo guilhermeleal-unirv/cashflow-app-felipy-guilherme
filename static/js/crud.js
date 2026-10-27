@@ -15,7 +15,17 @@ function toast(msg, ok = true) {
 }
 
 async function api(url, method = 'GET', body) {
-  const r = await fetch(url, { method, headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined });
+  const token = localStorage.getItem('cashflow_token');
+  const headers = {};
+  if (body) headers['Content-Type'] = 'application/json';
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const r = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  if (r.status === 401 && !url.includes('/login')) {
+    localStorage.removeItem('cashflow_token');
+    if (window.showLoginModal) window.showLoginModal();
+    throw new Error('Sessão expirada. Faça login novamente.');
+  }
   const data = await r.json().catch(() => ({}));
   if (!r.ok) {
     const d = data.detail;

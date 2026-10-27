@@ -104,7 +104,15 @@ $id('extractForm').addEventListener('submit', async e => {
   $id('analiseCard').classList.add('hidden'); $id('lancarMsg').classList.add('hidden');
   try {
     const fd = new FormData(); fd.append('file', file); fd.append('api_key', $id('apiKey').value);
-    const r = await fetch('/documentos/extrair_via_llm', { method: 'POST', body: fd });
+    const token = localStorage.getItem('cashflow_token');
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const r = await fetch('/documentos/extrair_via_llm', { method: 'POST', body: fd, headers });
+    if (r.status === 401) {
+      localStorage.removeItem('cashflow_token');
+      window.showLoginModal();
+      throw new Error('Sessão expirada. Faça login novamente.');
+    }
     const data = await r.json();
     if (!r.ok) throw new Error(data.detail || 'Erro ao extrair');
     extraido = { ...data, nome_arquivo: file.name };
@@ -130,3 +138,71 @@ $id('btnLancar').addEventListener('click', async () => {
     extraido = null;
   } catch (err) { toast(err.message, false); $id('btnLancar').disabled = false; }
 });
+
+// ── Controle de Login / Sessão ──
+window.showLoginModal = function() {
+  $id('loginModal').style.display = 'flex';
+  $id('loginError').classList.add('hidden');
+  $id('loginPassword').value = 'costelaoNoDomingo';
+};
+
+function checkAuth() {
+  const token = localStorage.getItem('cashflow_token');
+  const user = localStorage.getItem('cashflow_user') || 'joao.paraiba';
+  if (!token) {
+    window.showLoginModal();
+  } else {
+    $id('loginModal').style.display = 'none';
+    $id('userNameLabel').textContent = user;
+  }
+}
+
+$id('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const u = $id('loginUsername').value.trim();
+  const p = $id('loginPassword').value;
+  const btn = $id('btnLoginSubmit');
+  const ldr = $id('loginLoader');
+  const txt = $id('loginBtnText');
+  const errBox = $id('loginError');
+
+  btn.disabled = true;
+  ldr.style.display = 'inline-block';
+  txt.textContent = 'Autenticando...';
+  errBox.classList.add('hidden');
+
+  try {
+    const res = await fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.detail || 'Usuário ou senha inválidos.');
+    }
+    localStorage.setItem('cashflow_token', data.access_token);
+    localStorage.setItem('cashflow_user', u);
+    $id('userNameLabel').textContent = u;
+    $id('loginModal').style.display = 'none';
+    toast('Login efetuado com sucesso!');
+  } catch (err) {
+    errBox.textContent = err.message;
+    errBox.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    ldr.style.display = 'none';
+    txt.textContent = 'Entrar';
+  }
+});
+
+$id('btnLogout').addEventListener('click', () => {
+  if (confirm('Deseja realmente sair?')) {
+    localStorage.removeItem('cashflow_token');
+    localStorage.removeItem('cashflow_user');
+    window.showLoginModal();
+    toast('Você saiu do sistema.');
+  }
+});
+
+checkAuth();

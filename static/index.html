@@ -19,6 +19,14 @@
     <div class="nav-sep">Movimentos</div>
     <button class="nav-btn" data-view="v-pagar" id="nav-pagar">📤 Contas a Pagar</button>
     <button class="nav-btn" data-view="v-receber" id="nav-receber">📥 Contas a Receber</button>
+
+    <div class="sidebar-user" id="sidebarUser">
+        <div class="user-info">
+            <span class="user-avatar">👤</span>
+            <span class="user-name" id="userNameLabel">joao.paraiba</span>
+        </div>
+        <button class="btn sm danger" id="btnLogout" title="Encerrar sessão" style="margin:0; width:100%;">Sair</button>
+    </div>
 </aside>
 
 <main>
@@ -52,6 +60,28 @@
     <section class="view" id="v-pagar"></section>
     <section class="view" id="v-receber"></section>
 </main>
+
+<!-- Modal de Login -->
+<div class="modal-bg" id="loginModal" style="display:none; z-index:1000;">
+    <form class="modal" id="loginForm" style="max-width: 400px; padding: 2.2rem;">
+        <div class="brand" style="text-align: center; font-size: 1.5rem; margin-bottom: 0.5rem; padding: 0;">💸 CASHFLOW</div>
+        <h2 style="text-align: center; margin-bottom: 0.3rem;">Acesso ao Sistema</h2>
+        <p class="subtitle" style="text-align: center; margin-bottom: 1.3rem;">Informe suas credenciais para continuar</p>
+        <div class="field" style="margin-bottom: 0.9rem;">
+            <label for="loginUsername">Usuário</label>
+            <input type="text" id="loginUsername" value="joao.paraiba" placeholder="ex: joao.paraiba" required autocomplete="username">
+        </div>
+        <div class="field" style="margin-bottom: 0.9rem;">
+            <label for="loginPassword">Senha</label>
+            <input type="password" id="loginPassword" value="costelaoNoDomingo" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <div id="loginError" class="hidden" style="color: var(--danger); font-size: 0.82rem; margin-bottom: 0.8rem; text-align: center;"></div>
+        <button type="submit" class="btn" id="btnLoginSubmit" style="width: 100%; margin-top: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+            <span class="loader" id="loginLoader"></span>
+            <span id="loginBtnText">Entrar</span>
+        </button>
+    </form>
+</div>
 
 <div id="toast"></div>
 <script src="/static/js/crud.js"></script>

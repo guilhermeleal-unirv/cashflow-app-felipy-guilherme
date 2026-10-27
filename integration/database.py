@@ -23,10 +23,29 @@ if DATABASE_URL:
         DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 engine = create_engine(DATABASE_URL, echo=True)
 
+def seed_default_user():
+    from models.user import User
+    from auth.security import get_password_hash
+    from sqlmodel import select
+    with Session(engine) as session:
+        statement = select(User).where(User.username == "joao.paraiba")
+        existing = session.exec(statement).first()
+        if not existing:
+            default_user = User(
+                username="joao.paraiba",
+                email="joao.paraiba@cashflow.com",
+                hashed_password=get_password_hash("costelaoNoDomingo"),
+                is_active=True
+            )
+            session.add(default_user)
+            session.commit()
+            print("Usuário padrão 'joao.paraiba' criado com sucesso.")
+
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
     from integration.migrations import run_migrations
     run_migrations(engine)
+    seed_default_user()
 
 def get_session():
     with Session(engine) as session:

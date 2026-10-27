@@ -7,17 +7,75 @@ from main import app
 from integration.database import get_session
 
 
+from models.user import User
+from auth.dependencies import get_current_user
+from auth.security import get_password_hash
+
+
 @pytest.fixture()
 def client():
     engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
     SQLModel.metadata.create_all(engine)
+
+    # Cria o usuário padrão no banco do teste
+    with Session(engine) as s:
+        s.add(User(
+            username="joao.paraiba",
+            email="joao.paraiba@cashflow.com",
+            hashed_password=get_password_hash("costelaoNoDomingo"),
+            is_active=True
+        ))
+        s.commit()
 
     def override():
         with Session(engine) as s:
             yield s
 
     app.dependency_overrides[get_session] = override
-    yield TestClient(app)  # sem 'with' => não dispara o lifespan (Postgres)
+    app.dependency_overrides[get_current_user] = lambda: User(username="joao.paraiba", id=1)
+    yield TestClient(app)
+    app.dependency_overrides.clear()
+
+
+def test_autenticacao_joao_paraiba():
+    # Testa o fluxo real de autenticação sem override de get_current_user
+    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    SQLModel.metadata.create_all(engine)
+    with Session(engine) as s:
+        s.add(User(
+            username="joao.paraiba",
+            email="joao.paraiba@cashflow.com",
+            hashed_password=get_password_hash("costelaoNoDomingo"),
+            is_active=True
+        ))
+        s.commit()
+
+    def override():
+        with Session(engine) as s:
+            yield s
+
+    app.dependency_overrides[get_session] = override
+    if get_current_user in app.dependency_overrides:
+        del app.dependency_overrides[get_current_user]
+
+    c = TestClient(app)
+    # 1. Rota protegida sem token é rejeitada
+    r_unauth = c.get("/parceiros/")
+    assert r_unauth.status_code in (401, 403)
+
+    # 2. Login com senha errada falha
+    r_err = c.post("/login", json={"username": "joao.paraiba", "password": "senhaErrada"})
+    assert r_err.status_code == 401
+
+    # 3. Login com usuario joao.paraiba e senha costelaoNoDomingo tem sucesso
+    r_login = c.post("/login", json={"username": "joao.paraiba", "password": "costelaoNoDomingo"})
+    assert r_login.status_code == 200
+    token = r_login.json()["access_token"]
+    assert token is not None
+
+    # 4. Acesso com o token Bearer funciona
+    r_auth = c.get("/parceiros/", headers={"Authorization": f"Bearer {token}"})
+    assert r_auth.status_code == 200
     app.dependency_overrides.clear()
 
 

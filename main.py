@@ -45,18 +45,20 @@ app.add_middleware(
     allow_headers=["*"],  # Permite todos os cabeçalhos (essencial para receber o "Authorization: Bearer <token>")
 )
 
-# Registramos as rotas de autenticação (login e registro)
+# Importamos a dependência de autenticação para proteger as rotas
+from fastapi import Depends
+from auth.dependencies import get_current_user
+
+# Registramos as rotas de autenticação (login e registro) - PÚBLICAS
 app.include_router(auth_router)
 
-# Inclui as rotas (endpoints) de CRUD de usuários
-app.include_router(users_router)
-
-# Rotas do sistema CASHFLOW
-app.include_router(titular_router)
-app.include_router(parceiro_router)
-app.include_router(categoria_router)
-app.include_router(documento_router)
-app.include_router(registro_router)
+# Rotas protegidas por autenticação (Bearer Token JWT)
+app.include_router(users_router, dependencies=[Depends(get_current_user)])
+app.include_router(titular_router, dependencies=[Depends(get_current_user)])
+app.include_router(parceiro_router, dependencies=[Depends(get_current_user)])
+app.include_router(categoria_router, dependencies=[Depends(get_current_user)])
+app.include_router(documento_router, dependencies=[Depends(get_current_user)])
+app.include_router(registro_router, dependencies=[Depends(get_current_user)])
 
 # Frontend para o Leitor de LLM
 import os
