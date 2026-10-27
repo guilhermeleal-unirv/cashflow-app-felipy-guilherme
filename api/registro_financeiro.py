@@ -85,13 +85,25 @@ def listar_registros(request: Request, session: SessionDep, skip: int = 0, limit
         query = query.join(Titular, Titular.id == RegistroFinanceiro.titular_id) \
             .where(Titular.nome.ilike(f"%{qp.get('titular').strip()}%"))
     if qp.get("valor_min"):
-        query = query.where(RegistroFinanceiro.valor_total >= float(qp.get("valor_min")))
+        try:
+            query = query.where(RegistroFinanceiro.valor_total >= float(qp.get("valor_min").replace(",", ".")))
+        except (ValueError, TypeError):
+            pass
     if qp.get("valor_max"):
-        query = query.where(RegistroFinanceiro.valor_total <= float(qp.get("valor_max")))
+        try:
+            query = query.where(RegistroFinanceiro.valor_total <= float(qp.get("valor_max").replace(",", ".")))
+        except (ValueError, TypeError):
+            pass
     if qp.get("data_ini"):
-        query = query.where(RegistroFinanceiro.data_emissao >= date.fromisoformat(qp.get("data_ini")))
+        try:
+            query = query.where(RegistroFinanceiro.data_emissao >= date.fromisoformat(qp.get("data_ini")[:10]))
+        except (ValueError, TypeError):
+            pass
     if qp.get("data_fim"):
-        query = query.where(RegistroFinanceiro.data_emissao <= date.fromisoformat(qp.get("data_fim")))
+        try:
+            query = query.where(RegistroFinanceiro.data_emissao <= date.fromisoformat(qp.get("data_fim")[:10]))
+        except (ValueError, TypeError):
+            pass
     col = getattr(RegistroFinanceiro, sort, None) or RegistroFinanceiro.id
     query = query.order_by(col.desc() if order.lower() == "desc" else col.asc())
     return [_serializar(session, r) for r in session.exec(query.offset(skip).limit(limit)).all()]

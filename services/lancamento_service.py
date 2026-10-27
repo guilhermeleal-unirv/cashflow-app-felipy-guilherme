@@ -88,13 +88,34 @@ def verificar(session: Session, dados: dict) -> dict:
     }
 
 
+def _parse_float(v, padrao: float = 0.0) -> float:
+    if v is None:
+        return padrao
+    if isinstance(v, (int, float)):
+        return float(v)
+    s = str(v).replace("R$", "").replace(" ", "").strip()
+    if not s:
+        return padrao
+    if "," in s and "." in s:
+        s = s.replace(".", "").replace(",", ".")
+    elif "," in s:
+        s = s.replace(",", ".")
+    try:
+        return float(s)
+    except Exception:
+        return padrao
+
+
 def _parse_data(v, padrao: date) -> date:
     if isinstance(v, date):
         return v
-    try:
-        return datetime.strptime(str(v)[:10], "%Y-%m-%d").date()
-    except Exception:
-        return padrao
+    s = str(v or "").strip()[:10]
+    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%Y/%m/%d", "%d-%m-%Y"):
+        try:
+            return datetime.strptime(s, fmt).date()
+        except Exception:
+            pass
+    return padrao
 
 
 def lancar(session: Session, dados: dict, nome_arquivo: str | None = None) -> dict:
@@ -142,8 +163,8 @@ def lancar(session: Session, dados: dict, nome_arquivo: str | None = None) -> di
         totais = dados.get("totais") or {}
         emissao = _parse_data(nf.get("data_emissao"), date.today())
         parcelas_in = dados.get("parcelas") or []
-        valor_total = float(totais.get("valor_total_nota") or 0) or \
-            sum(float(p.get("valor") or 0) for p in parcelas_in)
+        valor_total = _parse_float(totais.get("valor_total_nota")) or \
+            sum(_parse_float(p.get("valor")) for p in parcelas_in)
         if valor_total <= 0:
             raise ValueError("Valor total da nota não identificado")
 
@@ -161,7 +182,7 @@ def lancar(session: Session, dados: dict, nome_arquivo: str | None = None) -> di
             session.add(Parcela(
                 numero_parcela=int(p.get("numero") or i),
                 data_vencimento=_parse_data(p.get("data_vencimento"), emissao),
-                valor_parcela=float(p.get("valor") or 0),
+                valor_parcela=_parse_float(p.get("valor"), valor_total),
                 status="Pendente", registro_id=registro.id))
         session.commit()
     except Exception:

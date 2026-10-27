@@ -1,5 +1,5 @@
 from typing import Optional, List
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from sqlmodel import SQLModel, Field, Relationship
 
 # Valores permitidos para o campo STATUS (exclusão lógica)
@@ -86,7 +86,7 @@ class CategoriaRead(CategoriaBase):
 class DocumentoPDFBase(SQLModel):
     nome_arquivo: str
     status_ocr: str  # Ex: Pendente, Aprovado, Erro
-    data_importacao: datetime = Field(default_factory=datetime.utcnow)
+    data_importacao: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class DocumentoPDF(DocumentoPDFBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

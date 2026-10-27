@@ -147,7 +147,10 @@ def extrair_via_llm(
             
         # Configura a API do Gemini
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-3.8-flash')
+        try:
+            model = genai.GenerativeModel('gemini-1.5-flash')
+        except Exception:
+            model = genai.GenerativeModel('gemini-2.0-flash')
         
         prompt = f"""
         Você é um assistente financeiro especialista em notas fiscais brasileiras (DANFE/NF-e).
