@@ -147,10 +147,6 @@ def extrair_via_llm(
             
         # Configura a API do Gemini
         genai.configure(api_key=api_key)
-        try:
-            model = genai.GenerativeModel('gemini-1.5-flash')
-        except Exception:
-            model = genai.GenerativeModel('gemini-2.0-flash')
         
         prompt = f"""
         Você é um assistente financeiro especialista em notas fiscais brasileiras (DANFE/NF-e).
@@ -250,7 +246,42 @@ def extrair_via_llm(
         Texto do PDF:
         {texto}
         """
-        response = model.generate_content(prompt)
+
+        # Descobre os modelos disponíveis e suportados para a chave do usuário
+        candidatos = [
+            'gemini-1.5-flash-latest',
+            'gemini-1.5-flash',
+            'gemini-2.0-flash',
+            'gemini-pro',
+            'gemini-1.0-pro'
+        ]
+        try:
+            disponiveis = [
+                m.name for m in genai.list_models()
+                if 'generateContent' in getattr(m, 'supported_generation_methods', [])
+            ]
+            if disponiveis:
+                flash_models = [m for m in disponiveis if 'flash' in m]
+                outros = [m for m in disponiveis if m not in flash_models]
+                candidatos = flash_models + outros + candidatos
+        except Exception:
+            pass
+
+        response = None
+        ultimo_erro = None
+        for nome_mod in candidatos:
+            try:
+                model = genai.GenerativeModel(nome_mod)
+                res = model.generate_content(prompt)
+                if res and getattr(res, 'text', None):
+                    response = res
+                    break
+            except Exception as e:
+                ultimo_erro = e
+                continue
+
+        if not response or not getattr(response, 'text', None):
+            raise HTTPException(status_code=500, detail=f"Erro ao extrair via LLM com modelos disponíveis: {ultimo_erro}")
         
         # Parseia a resposta do LLM (remove markdown caso presente)
         texto_resposta = response.text.strip()
