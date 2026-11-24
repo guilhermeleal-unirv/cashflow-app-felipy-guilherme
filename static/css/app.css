@@ -167,3 +167,81 @@ table.grid td.empty { text-align: center; color: var(--muted); padding: 2rem; }
   color: var(--muted);
   opacity: .85;
 }
+
+/* ── Estilos para o Módulo de Consulta RAG (N3) ── */
+.rag-form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+.btn-chip {
+  cursor: pointer;
+  border-radius: 20px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.78rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  transition: all 0.2s ease;
+}
+.btn-chip:hover {
+  background: rgba(37, 99, 235, 0.1);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+.rag-answer-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.2rem;
+  line-height: 1.65;
+  font-size: 0.95rem;
+  color: var(--text);
+  white-space: pre-line;
+}
+.rag-answer-box strong {
+  color: #38bdf8;
+}
+.rag-answer-box ul {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+.rag-sources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.rag-source-card {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: 6px;
+  padding: 0.8rem 1rem;
+  font-size: 0.85rem;
+  transition: border-color 0.2s;
+}
+.rag-source-card:hover {
+  border-color: var(--primary);
+}
+.rag-source-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}
+.sim-pill {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+}
+.sim-high {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+.sim-med {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}

@@ -13,6 +13,7 @@ from api.parceiro import parceiro_router
 from api.categoria import categoria_router
 from api.documento import documento_router
 from api.registro_financeiro import registro_router
+from api.rag import rag_router
 from integration.database import lifespan
 
 from fastapi.staticfiles import StaticFiles
@@ -59,6 +60,7 @@ app.include_router(parceiro_router, dependencies=[Depends(get_current_user)])
 app.include_router(categoria_router, dependencies=[Depends(get_current_user)])
 app.include_router(documento_router, dependencies=[Depends(get_current_user)])
 app.include_router(registro_router, dependencies=[Depends(get_current_user)])
+app.include_router(rag_router, dependencies=[Depends(get_current_user)])
 
 # Frontend para o Leitor de LLM
 import os

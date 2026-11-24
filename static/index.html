@@ -19,6 +19,8 @@
     <div class="nav-sep">Movimentos</div>
     <button class="nav-btn" data-view="v-pagar" id="nav-pagar">📤 Contas a Pagar</button>
     <button class="nav-btn" data-view="v-receber" id="nav-receber">📥 Contas a Receber</button>
+    <div class="nav-sep">Agente Inteligente</div>
+    <button class="nav-btn" data-view="v-rag" id="nav-rag">🤖 Consulta RAG (N3)</button>
 
     <div class="sidebar-user" id="sidebarUser">
         <div class="user-info">
@@ -69,6 +71,95 @@
     <section class="view" id="v-class"></section>
     <section class="view" id="v-pagar"></section>
     <section class="view" id="v-receber"></section>
+
+    <!-- ═══ Consulta com RAG (N3: Simples e Embeddings) ═══ -->
+    <section class="view" id="v-rag">
+        <div class="card">
+            <h1 class="title">🤖 Consulta com Agente Inteligente (RAG)</h1>
+            <p class="subtitle">Faça perguntas em linguagem natural sobre as contas, despesas, fornecedores e notas do banco de dados.</p>
+            
+            <form id="ragForm" class="rag-form">
+                <div class="field" style="margin-bottom: 1rem;">
+                    <label for="ragQuery"><strong>Pergunta referente ao Banco de Dados</strong></label>
+                    <textarea id="ragQuery" rows="3" placeholder="Ex: Qual o valor total a pagar para a Iguaçu Máquinas? Ou: Quais contas temos relacionadas a manutenção de trator?" required style="width:100%; border-radius:8px; padding:0.8rem; font-family:inherit; font-size:0.95rem;"></textarea>
+                </div>
+                
+                <div class="row" style="margin-bottom: 1rem; align-items: flex-end;">
+                    <div>
+                        <label for="ragModo"><strong>Método de Busca (RAG)</strong></label>
+                        <select id="ragModo" style="width:100%;">
+                            <option value="simples">🔹 RAG Simples (SQL / Dados Estruturados) [25%]</option>
+                            <option value="embeddings">🔸 RAG Embeddings (Busca Semântica Vetorial) [35%]</option>
+                            <option value="ambos">⚖️ Comparar Ambos (Lado a Lado)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="ragApiKey"><strong>Gemini API Key (opcional se já inserida na tela de IA)</strong></label>
+                        <input type="password" id="ragApiKey" placeholder="Chave da API Gemini...">
+                    </div>
+                    <div>
+                        <button class="btn" id="ragSubmitBtn" type="submit" style="width:100%;">
+                            <span class="loader" id="ragLoader" style="display:none;"></span>
+                            <span id="ragBtnText">🔍 Consultar com IA</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="rag-quick-queries" style="margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+                <span style="font-size: 0.8rem; color: var(--muted); font-weight: 600;">Exemplos rápidos:</span>
+                <button type="button" class="btn sm secondary btn-chip" data-q="Quais são as contas a pagar cadastradas e seus valores?">📋 Contas a Pagar</button>
+                <button type="button" class="btn sm secondary btn-chip" data-q="Quanto devemos para o fornecedor Iguaçu Máquinas e quando vence?">🚜 Iguaçu Máquinas</button>
+                <button type="button" class="btn sm secondary btn-chip" data-q="Quais despesas foram classificadas como MANUTENÇÃO E OPERAÇÃO?">⚙️ Manutenção</button>
+                <button type="button" class="btn sm secondary btn-chip" data-q="Existe alguma compra de peças agrícolas ou maquinário registrada?">🌾 Peças Agrícolas</button>
+            </div>
+        </div>
+
+        <!-- Card com o resultado do RAG -->
+        <div id="ragResultCard" class="card hidden" style="margin-top: 1.5rem;">
+            <div id="ragSingleResult">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+                    <h2 class="title" style="font-size:1.2rem; margin:0;" id="ragResultTitle">Resposta Elaborada pelo LLM</h2>
+                    <span class="badge" id="ragModeBadge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 0.25rem 0.6rem; border-radius: 6px; font-weight: 700; font-size: 0.8rem;">RAG SIMPLES</span>
+                </div>
+                <div class="rag-answer-box" id="ragAnswerContent"></div>
+                
+                <!-- Seção de Transparência RAG: Documentos e Fontes Recuperadas -->
+                <div style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3 style="font-size:0.95rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin:0;">
+                            🔍 Contexto / Fontes Recuperadas do Banco (<span id="ragSourcesCount">0</span>)
+                        </h3>
+                        <button class="btn sm secondary" id="btnToggleSources">Ocultar/Exibir Fontes</button>
+                    </div>
+                    <div class="rag-sources-list" id="ragSourcesList" style="margin-top:0.8rem;"></div>
+                </div>
+            </div>
+
+            <!-- Visualização Comparativa (Ambos) -->
+            <div id="ragCompareResult" class="hidden">
+                <h2 class="title" style="font-size:1.2rem; margin-bottom:1rem;">⚖️ Comparativo: RAG Simples vs. RAG Embeddings</h2>
+                <div class="row" style="grid-template-columns: 1fr 1fr; gap:1.2rem;">
+                    <div class="card" style="border: 1px solid var(--border); padding: 1.2rem; background: var(--bg);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+                            <strong style="color: #3b82f6; font-size: 1rem;">🔹 RAG Simples (SQL Direto)</strong>
+                            <span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.75rem;">Tabular / Relacional</span>
+                        </div>
+                        <div class="rag-answer-box" id="compareSimplesAnswer"></div>
+                        <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--border); padding-top: 0.5rem;" id="compareSimplesMeta"></div>
+                    </div>
+                    <div class="card" style="border: 1px solid var(--border); padding: 1.2rem; background: var(--bg);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+                            <strong style="color: #10b981; font-size: 1rem;">🔸 RAG Embeddings (Semântico)</strong>
+                            <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.75rem;">Similaridade de Cosseno</span>
+                        </div>
+                        <div class="rag-answer-box" id="compareEmbeddingsAnswer"></div>
+                        <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--border); padding-top: 0.5rem;" id="compareEmbeddingsMeta"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </main>
 
 <!-- Modal de Login -->

@@ -264,3 +264,154 @@ async function carregarInfoGit() {
 
 checkAuth();
 carregarInfoGit();
+
+// ══════════════════════════════════════════════════════════════
+// ── Agente Inteligente RAG (N3: Simples e Embeddings) ──
+// ══════════════════════════════════════════════════════════════
+function formatarMarkdown(md) {
+  if (!md) return '';
+  let h = esc(md);
+  // Negrito **texto**
+  h = h.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  // Itálico *texto*
+  h = h.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  // Listas com marcadores
+  h = h.replace(/^\s*[-•*]\s+(.*)$/gm, '<li style="margin-left: 1.2rem;">$1</li>');
+  // Quebras de linha
+  h = h.replace(/\n\n/g, '<br><br>');
+  h = h.replace(/\n/g, '<br>');
+  return h;
+}
+
+function renderFonteCard(f, modo) {
+  const sim = f.similaridade_score !== undefined ? f.similaridade_score : null;
+  const simPill = sim !== null
+    ? `<span class="sim-pill ${sim >= 0.6 ? 'sim-high' : 'sim-med'}">Similaridade: ${(sim * 100).toFixed(1)}%</span>`
+    : '';
+
+  const parcelasStr = (f.parcelas || []).length
+    ? `${f.parcelas.length} parcela(s)`
+    : 'Sem parcelas';
+
+  return `
+    <div class="rag-source-card">
+      <div class="rag-source-header">
+        <span style="color: var(--primary); font-weight: 700;">#${f.id} — ${f.tipo} | ${brl(f.valor_total)}</span>
+        ${simPill}
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.3rem; margin-top: 0.3rem;">
+        <div><strong>Fornecedor/Cliente:</strong> ${esc(f.parceiro || '—')}</div>
+        <div><strong>Faturado:</strong> ${esc(f.titular || '—')}</div>
+        <div><strong>Classificação:</strong> <span class="badge" style="background:rgba(255,255,255,0.08);">${esc(f.categoria || '—')}</span></div>
+        <div><strong>Emissão:</strong> ${dataBR(f.data_emissao)}</div>
+        <div><strong>Parcelas:</strong> ${parcelasStr}</div>
+        <div><strong>Origem (PDF):</strong> ${esc(f.documento_pdf || 'Manual/Nenhum')}</div>
+      </div>
+    </div>
+  `;
+}
+
+// Chips de perguntas de exemplo
+document.querySelectorAll('.btn-chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const q = btn.dataset.q;
+    const txt = $id('ragQuery');
+    if (txt && q) {
+      txt.value = q;
+      txt.focus();
+    }
+  });
+});
+
+// Botão de alternar exibição das fontes
+const btnToggleSources = $id('btnToggleSources');
+if (btnToggleSources) {
+  btnToggleSources.addEventListener('click', () => {
+    const list = $id('ragSourcesList');
+    if (list) list.classList.toggle('hidden');
+  });
+}
+
+// Submissão do formulário de consulta RAG
+const ragForm = $id('ragForm');
+if (ragForm) {
+  ragForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const query = ($id('ragQuery')?.value || '').trim();
+    const modo = $id('ragModo')?.value || 'simples';
+    // Pega API Key do campo RAG ou da tela Lançar via IA
+    const apiKey = ($id('ragApiKey')?.value || '').trim() || ($id('apiKey')?.value || '').trim();
+
+    if (!query) {
+      toast('Por favor, digite sua pergunta sobre o banco.', false);
+      return;
+    }
+
+    const btn = $id('ragSubmitBtn');
+    const loader = $id('ragLoader');
+    const btnText = $id('ragBtnText');
+    const resultCard = $id('ragResultCard');
+    const singleResult = $id('ragSingleResult');
+    const compareResult = $id('ragCompareResult');
+
+    btn.disabled = true;
+    if (loader) loader.style.display = 'inline-block';
+    if (btnText) btnText.textContent = 'Processando com IA...';
+
+    try {
+      const data = await api('/rag/consultar', 'POST', {
+        query,
+        modo,
+        top_k: 5,
+        api_key: apiKey || undefined
+      });
+
+      resultCard.classList.remove('hidden');
+
+      if (data.modo === 'ambos') {
+        singleResult.classList.add('hidden');
+        compareResult.classList.remove('hidden');
+
+        $id('compareSimplesAnswer').innerHTML = formatarMarkdown(data.simples.resposta);
+        $id('compareSimplesMeta').textContent = `Recuperados ${data.simples.total_fontes} registros estruturados via SQL.`;
+
+        $id('compareEmbeddingsAnswer').innerHTML = formatarMarkdown(data.embeddings.resposta);
+        $id('compareEmbeddingsMeta').textContent = `Recuperados os ${data.embeddings.total_fontes} registros mais próximos via similaridade de cosseno.`;
+      } else {
+        compareResult.classList.add('hidden');
+        singleResult.classList.remove('hidden');
+
+        const isSemantico = data.modo === 'embeddings';
+        const badge = $id('ragModeBadge');
+        if (badge) {
+          badge.textContent = isSemantico ? 'RAG EMBEDDINGS (SEMÂNTICO)' : 'RAG SIMPLES (SQL)';
+          badge.style.background = isSemantico ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)';
+          badge.style.color = isSemantico ? '#10b981' : '#3b82f6';
+        }
+
+        $id('ragAnswerContent').innerHTML = formatarMarkdown(data.resposta);
+
+        const fontes = data.fontes || [];
+        $id('ragSourcesCount').textContent = fontes.length;
+
+        const sourcesList = $id('ragSourcesList');
+        if (sourcesList) {
+          sourcesList.classList.remove('hidden');
+          sourcesList.innerHTML = fontes.length
+            ? fontes.map(f => renderFonteCard(f, data.modo)).join('')
+            : '<p style="color:var(--muted); font-size:0.85rem;">Nenhum registro recuperado do banco para esta consulta.</p>';
+        }
+      }
+
+      toast('Consulta RAG processada com sucesso!');
+      resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch (err) {
+      toast(err.message || 'Erro ao consultar RAG', false);
+    } finally {
+      btn.disabled = false;
+      if (loader) loader.style.display = 'none';
+      if (btnText) btnText.textContent = '🔍 Consultar com IA';
+    }
+  });
+}
