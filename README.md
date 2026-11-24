@@ -1,56 +1,67 @@
-# CASHFLOW API â€” Controle de Contas Rurais
+# CASHFLOW API — Controle de Contas Rurais
 
-Bem-vindo ao projeto **CASHFLOW**. Esta API foi construÃ­da com **FastAPI**, utilizando **Pydantic** para validaÃ§Ã£o de dados, **SQLModel** para comunicaÃ§Ã£o com o banco de dados e integraÃ§Ã£o com **PostgreSQL**. O sistema tem como objetivo o controle financeiro de propriedades rurais com extraÃ§Ã£o automÃ¡tica de dados de notas fiscais via **InteligÃªncia Artificial (Google Gemini)**.
-
----
-
-## ðŸ—‚ Estrutura do Projeto
-
-```
-ðŸ“¦ FastAPI_BD-main
-â”œâ”€â”€ api/
-â”‚   â”œâ”€â”€ auth.py              # Endpoints de autenticaÃ§Ã£o (login, token JWT)
-â”‚   â”œâ”€â”€ users.py             # CRUD de usuÃ¡rios
-â”‚   â”œâ”€â”€ titular.py           # CRUD de titulares (Fulano, Beltrano, Ciclano)
-â”‚   â”œâ”€â”€ parceiro.py          # CRUD de parceiros (Fornecedores/Clientes)
-â”‚   â”œâ”€â”€ categoria.py         # CRUD de categorias de despesa
-â”‚   â”œâ”€â”€ documento.py         # Upload de PDF + ExtraÃ§Ã£o via LLM (Gemini)
-â”‚   â””â”€â”€ registro_financeiro.py  # Registros financeiros e baixas de parcelas
-â”œâ”€â”€ models/
-â”‚   â”œâ”€â”€ user.py              # Modelo de usuÃ¡rio e autenticaÃ§Ã£o
-â”‚   â”œâ”€â”€ token.py             # Schemas de token JWT
-â”‚   â””â”€â”€ financeiro.py        # Modelos: Titular, Parceiro, Categoria,
-â”‚                            #  DocumentoPDF, RegistroFinanceiro, Parcela, DepositoBaixa
-â”œâ”€â”€ services/                # LÃ³gica de negÃ³cio e serviÃ§os
-â”œâ”€â”€ auth/                    # GeraÃ§Ã£o e verificaÃ§Ã£o de tokens JWT
-â”œâ”€â”€ integration/
-â”‚   â””â”€â”€ database.py          # ConexÃ£o e criaÃ§Ã£o das tabelas no banco (lifespan)
-â”œâ”€â”€ static/
-â”‚   â””â”€â”€ index.html           # Interface web para extraÃ§Ã£o de PDF via LLM
-â”œâ”€â”€ main.py                  # Entry point â€” registra todos os routers
-â”œâ”€â”€ requirements.txt
-â””â”€â”€ .env                     # VariÃ¡veis de ambiente (DATABASE_URL)
-```
+Bem-vindo ao projeto **CASHFLOW**. Esta API foi construída com **FastAPI**, utilizando **Pydantic** para validação de dados, **SQLModel** para comunicação com o banco de dados e integração com **PostgreSQL**. O sistema tem como objetivo o controle financeiro de propriedades rurais com extração automática de dados de notas fiscais via **Inteligência Artificial (Google Gemini)** e consultas inteligentes via **RAG (Retrieval-Augmented Generation)**.
 
 ---
 
-## ðŸ›  PrÃ©-requisitos
+## 🗂️ Estrutura do Projeto
 
-- **Python 3.10+** instalado na sua mÃ¡quina.
-- **PostgreSQL** instalado e rodando.
+```
+📦 FastAPI_BD-main
+├── api/
+│   ├── auth.py                # Endpoints de autenticação (login, token JWT)
+│   ├── users.py               # CRUD de usuários
+│   ├── titular.py             # CRUD de titulares (Fulano, Beltrano, Ciclano)
+│   ├── parceiro.py            # CRUD de parceiros (Fornecedores/Clientes)
+│   ├── categoria.py           # CRUD de categorias de despesa
+│   ├── documento.py           # Upload de PDF + Extração via LLM (Gemini)
+│   ├── registro_financeiro.py # Registros financeiros e baixas de parcelas
+│   └── rag.py                 # Endpoints de Consulta RAG (Simples e Embeddings)
+├── models/
+│   ├── user.py                # Modelo de usuário e autenticação
+│   ├── token.py               # Schemas de token JWT
+│   └── financeiro.py          # Modelos: Titular, Parceiro, Categoria, DocumentoPDF,
+│                              # RegistroFinanceiro, Parcela, DepositoBaixa
+├── services/
+│   ├── agent_rag.py           # Agente Inteligente RAG (Simples + Embeddings)
+│   ├── lancamento_service.py  # Lógica de verificação e lançamento automático
+│   ├── auth_service.py        # Autenticação e hash de senhas
+│   └── user_service.py        # Serviços de usuário
+├── auth/                      # Geração e verificação de tokens JWT
+├── integration/
+│   ├── database.py            # Conexão e criação das tabelas no banco (lifespan)
+│   └── migrations.py          # Migrações automáticas de schema
+├── static/
+│   ├── index.html             # Interface web SPA (Lançar via IA, CRUDs, Consulta RAG)
+│   ├── css/app.css            # Estilos da aplicação
+│   └── js/                    # Scripts da interface (app.js, crud.js)
+├── tests/                     # Testes automatizados (pytest)
+│   ├── test_etapa2.py         # Testes de autenticação, CRUDs e lançamento
+│   └── test_rag.py            # Testes do motor RAG (Simples e Embeddings)
+├── main.py                    # Entry point — registra todos os routers
+├── requirements.txt
+└── .env                       # Variáveis de ambiente (DATABASE_URL, SECRET_KEY)
+```
+
+---
+
+## 🛠️ Pré-requisitos
+
+- **Python 3.10+** instalado na sua máquina.
+- **PostgreSQL** instalado e rodando (ou SQLite para testes locais).
 - Uma **Chave da API do Google Gemini** (obtida em [aistudio.google.com](https://aistudio.google.com)).
 - (Opcional) **Insomnia**, **Postman** ou o **Swagger UI** embutido para testar os endpoints.
 
 ---
 
-## ðŸ“� Passo a Passo da ConfiguraÃ§Ã£o
+## 📋 Passo a Passo da Configuração
 
 ### Passo 1: Preparar o Banco de Dados (PostgreSQL)
 1. Abra o seu servidor do PostgreSQL (via DBeaver, pgAdmin ou terminal).
-2. Crie um banco de dados novo. SugestÃ£o de nome: `cashflow_db`.
-3. Anote o **usuÃ¡rio**, **senha**, **host** e **porta** da sua conexÃ£o.
+2. Crie um banco de dados novo. Sugestão de nome: `cashflow_db`.
+3. Anote o **usuário**, **senha**, **host** e **porta** da sua conexão.
 
-> **AtenÃ§Ã£o:** O FastAPI cria as tabelas automaticamente na inicializaÃ§Ã£o. VocÃª nÃ£o precisa criar nenhuma tabela manualmente.
+> **Atenção:** O FastAPI cria as tabelas automaticamente na inicialização. Você não precisa criar nenhuma tabela manualmente.
 
 ### Passo 2: Criar e Ativar um Ambiente Virtual
 
@@ -66,129 +77,134 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-### Passo 3: Instalar as DependÃªncias
+### Passo 3: Instalar as Dependências
 
 ```bash
 pip install -r requirements.txt
 ```
 
-> **O que estÃ¡ sendo instalado:**
-> - **fastapi** â€” Framework web de alta performance.
-> - **uvicorn[standard]** â€” Servidor ASGI para rodar a aplicaÃ§Ã£o.
-> - **sqlmodel** â€” IntegraÃ§Ã£o moderna de Pydantic + SQLAlchemy para o banco de dados.
-> - **psycopg2-binary** â€” Driver de conexÃ£o com o PostgreSQL.
-> - **python-dotenv** â€” LÃª variÃ¡veis de ambiente do arquivo `.env`.
-> - **PyPDF2** â€” ExtraÃ§Ã£o de texto de arquivos PDF.
-> - **google-generativeai** â€” SDK oficial da API do Google Gemini (LLM).
+> **O que está sendo instalado:**
+> - **fastapi** — Framework web de alta performance.
+> - **uvicorn[standard]** — Servidor ASGI para rodar a aplicação.
+> - **sqlmodel** — Integração moderna de Pydantic + SQLAlchemy para o banco de dados.
+> - **psycopg2-binary** / **psycopg** — Drivers de conexão com o PostgreSQL.
+> - **python-dotenv** — Lê variáveis de ambiente do arquivo `.env`.
+> - **PyPDF2** — Extração de texto de arquivos PDF.
+> - **google-generativeai** — SDK oficial da API do Google Gemini (LLM e Embeddings).
+> - **python-jose[cryptography]** / **bcrypt** — Autenticação e segurança JWT.
 
-### Passo 4: Configurar as VariÃ¡veis de Ambiente (`.env`)
+### Passo 4: Configurar as Variáveis de Ambiente (`.env`)
 
-Abra o arquivo `.env` e ajuste a `DATABASE_URL` com os dados da sua instalaÃ§Ã£o do PostgreSQL:
+Crie ou ajuste o arquivo `.env`:
 
 ```env
 DATABASE_URL=postgresql://seu_usuario:sua_senha@localhost:5432/cashflow_db
+SECRET_KEY="sua_chave_secreta_jwt"
+GEMINI_API_KEY="sua_chave_gemini_opcional"
 ```
 
-### Passo 5: Rodar a AplicaÃ§Ã£o
+### Passo 5: Rodar a Aplicação
 
-Com o ambiente virtual ativado e as dependÃªncias instaladas, rode:
+Com o ambiente virtual ativado e as dependências instaladas, rode:
 
 ```bash
 uvicorn main:app --reload
 ```
 
 - `--reload` faz o servidor reiniciar automaticamente ao salvar qualquer arquivo.
-- Na primeira inicializaÃ§Ã£o, **todas as tabelas serÃ£o criadas automaticamente** no banco de dados.
+- Na primeira inicialização, **todas as tabelas serão criadas automaticamente** e o usuário padrão `joao.paraiba` será populado no banco de dados.
 
 ---
 
-## ðŸš€ Funcionalidades Implementadas
+## 🚀 Funcionalidades Implementadas
 
-### ðŸ”� AutenticaÃ§Ã£o (JWT)
-- `POST /auth/login` â€” Realiza o login e retorna um token JWT.
+### 🔒 Autenticação (JWT)
+- `POST /login` — Realiza o login e retorna um token JWT Bearer.
+- Usuário padrão seedado: `joao.paraiba` / Senha: `costelaoNoDomingo`.
 
-### ðŸ‘¤ UsuÃ¡rios
-- `POST /users` â€” Cria um novo usuÃ¡rio.
-- `GET /users` â€” Lista todos os usuÃ¡rios.
-- `GET /users/{id}` â€” Busca um usuÃ¡rio especÃ­fico.
-- `PUT /users/{id}` â€” Atualiza um usuÃ¡rio.
-- `DELETE /users/{id}` â€” Remove um usuÃ¡rio.
+### 👤 Usuários
+- `POST /users` — Cria um novo usuário.
+- `GET /users` — Lista todos os usuários.
+- `GET /users/{id}` — Busca um usuário específico.
+- `PUT /users/{id}` — Atualiza um usuário.
+- `DELETE /users/{id}` — Remove um usuário.
 
-### ðŸ�  Titulares
-Representam os proprietÃ¡rios rurais (Fulano, Beltrano, Ciclano).
-- `POST /titulares/` â€” Cadastra um titular.
-- `GET /titulares/` â€” Lista todos os titulares.
-- `GET /titulares/{id}` â€” Busca um titular.
-- `DELETE /titulares/{id}` â€” Remove um titular.
+### 🏡 Titulares (Faturados)
+Representam os proprietários rurais (Fulano, Beltrano, Ciclano).
+- `POST /titulares/` — Cadastra um titular.
+- `GET /titulares/` — Lista todos os titulares (com busca multi-critério).
+- `GET /titulares/{id}` — Busca um titular.
+- `DELETE /titulares/{id}` — Inativa um titular (exclusão lógica).
 
-### ðŸ¤� Parceiros (Fornecedores/Clientes)
-- `POST /parceiros/` â€” Cadastra um parceiro.
-- `GET /parceiros/` â€” Lista todos os parceiros.
-- `GET /parceiros/{id}` â€” Busca um parceiro.
-- `DELETE /parceiros/{id}` â€” Remove um parceiro.
+### 🤝 Parceiros (Fornecedores/Clientes)
+- `POST /parceiros/` — Cadastra um parceiro.
+- `GET /parceiros/` — Lista todos os parceiros.
+- `GET /parceiros/{id}` — Busca um parceiro.
+- `DELETE /parceiros/{id}` — Inativa um parceiro (exclusão lógica).
 
-### ðŸ�·ï¸� Categorias de Despesa
-- `POST /categorias/` â€” Cadastra uma categoria.
-- `GET /categorias/` â€” Lista todas as categorias.
-- `GET /categorias/{id}` â€” Busca uma categoria.
-- `DELETE /categorias/{id}` â€” Remove uma categoria.
+### 🏷️ Categorias de Despesa / Receita
+- `POST /categorias/` — Cadastra uma categoria.
+- `GET /categorias/` — Lista todas as categorias.
+- `GET /categorias/{id}` — Busca uma categoria.
+- `DELETE /categorias/{id}` — Inativa uma categoria (exclusão lógica).
 
-### ðŸ“„ Documentos PDF e ExtraÃ§Ã£o via LLM â­�
-- `GET /documentos/` â€” Lista PDFs cadastrados, com filtro por status (`Pendente`, `Aprovado`, `Erro`).
-- `POST /documentos/upload` â€” Upload manual de um PDF, cria o prÃ©-cadastro com status "Pendente".
-- `POST /documentos/{id}/aprovar` â€” Valida os dados extraÃ­dos e cria o Registro Financeiro + Parcela automaticamente.
-- `POST /documentos/{id}/reprocessar` â€” Reenvia o documento para processamento.
-- `POST /documentos/extrair_via_llm` â€” **Endpoint principal da Etapa 1.** Recebe um PDF e uma Gemini API Key, extrai via LLM e retorna o seguinte JSON:
+### 📄 Documentos PDF e Extração via LLM (N1 / N2)
+- `POST /documentos/extrair_via_llm` — Extrai dados completos do DANFE/NF-e via Gemini.
+- `POST /documentos/verificar` — Verifica no banco se fornecedor, faturado e classificação já existem ou estão inativos.
+- `POST /documentos/lancar` — Cria entidades ausentes, reativa inativos e gera o movimento A PAGAR com suas parcelas automaticamente.
 
-```json
-{
-  "fornecedor": {
-    "razao_social": "...",
-    "fantasia": "...",
-    "cnpj": "..."
-  },
-  "faturado": {
-    "nome_completo": "...",
-    "cpf": "..."
-  },
-  "numero_nota_fiscal": "...",
-  "data_emissao": "YYYY-MM-DD",
-  "descricao_produtos": "...",
-  "parcelas": [
-    { "numero": 1, "data_vencimento": "YYYY-MM-DD", "valor": 0.00 }
-  ],
-  "valor_total": 0.00,
-  "classificacao_despesa": "MANUTENÃ‡ÃƒO E OPERAÃ‡ÃƒO"
-}
-```
-
-> O campo `classificacao_despesa` Ã© **interpretado pelo Gemini** com base nos produtos da nota, e nÃ£o simplesmente extraÃ­do. As categorias disponÃ­veis sÃ£o: INSUMOS AGRÃ�COLAS, MANUTENÃ‡ÃƒO E OPERAÃ‡ÃƒO, RECURSOS HUMANOS, SERVIÃ‡OS OPERACIONAIS, INFRAESTRUTURA E UTILIDADES, ADMINISTRATIVAS, SEGUROS E PROTEÃ‡ÃƒO, IMPOSTOS E TAXAS, INVESTIMENTOS.
-
-### ðŸ’° Registros Financeiros e Parcelas
-- `GET /registros/` â€” Lista todos os lanÃ§amentos financeiros aprovados.
-- `GET /registros/{id}` â€” Detalha um registro.
-- `GET /registros/parcelas/{id}` â€” Detalha uma parcela.
-- `POST /registros/parcelas/{id}/baixa` â€” Registra um depÃ³sito/pagamento parcial. O sistema liquida a parcela automaticamente quando o total depositado atingir o valor da parcela.
+### 💰 Registros Financeiros e Parcelas
+- `GET /registros/` — Lista todos os lançamentos financeiros com filtros e paginação.
+- `POST /registros/` — Criação manual de contas a pagar/receber com parcelamento.
+- `POST /registros/parcelas/{id}/baixa` — Registra depósito ou liquidação de parcelas.
 
 ---
 
-## ðŸŒ� Interface Web (Frontend)
+## 🤖 N3 - Consulta com Agente Inteligente (RAG)
+**Entrega: 02/12/2026 | Peso: 60% Entrega + 40% Avaliação**
 
-ApÃ³s iniciar o servidor, acesse a interface de extraÃ§Ã£o de PDF:
+Implementação completa da arquitetura **RAG (Retrieval-Augmented Generation)**:
+
+### 1. 🔹 RAG Simples (Peso: 25%)
+- **Retriever:** Consulta estruturada SQLModel no banco relacional buscando registros financeiros ativos, fornecedores, faturados, categorias e parcelas.
+- **Augmentation:** Montagem de prompt estruturado alimentado com o contexto tabular recuperado.
+- **Generator:** Modelo Gemini (`gemini-2.0-flash` / `gemini-1.5-flash`) sintetiza respostas precisas e fundamentadas nos dados reais.
+
+### 2. 🔸 RAG Embeddings / Semântico (Peso: 35%)
+- **Indexação Vetorial:** Vetorização dos registros com modelo de embeddings (`models/text-embedding-004`).
+- **Retriever Semântico:** Busca conceitual por proximidade vetorial calculando a **Similaridade de Cosseno** contra o vetor da pergunta do usuário.
+- **Geração:** Injeção dos trechos semanticamente mais relevantes no prompt do Gemini, permitindo encontrar dados mesmo sem correspondência literal de palavras (ex: *"peças e manutenção"* recupera registros agrícolas relevantes).
+
+### 3. 🖥️ Interface Web do Agente RAG
+- Acessível na barra lateral: **🤖 Consulta RAG (N3)**.
+- Input para perguntas em linguagem natural + botões de exemplos rápidos.
+- Seletor de método: **RAG Simples**, **RAG Embeddings** ou **Comparar Ambos (Lado a Lado)**.
+- **Transparência RAG:** Exibição da resposta elaborada pelo LLM e lista das fontes e registros recuperados do banco (com score de similaridade).
+
+### 4. 🔌 Endpoints da API (`/rag`)
+- `POST /rag/consultar` — Executa a busca e geração com o Agente RAG.
+- `GET /rag/status` — Estatísticas de registros ativos e cache vetorial.
+- `POST /rag/reindexar` — Atualização e pré-aquecimento dos embeddings.
+
+---
+
+## 🌐 Interface Web (Frontend)
+
+Após iniciar o servidor, acesse a interface web completa:
 
 ```
 http://localhost:8000/static/index.html
 ```
 
-Na interface vocÃª pode:
-1. Carregar uma Nota Fiscal em formato PDF.
-2. Informar a sua **Gemini API Key**.
-3. Clicar em **"Analisar com IA"**.
-4. Visualizar todos os dados extraÃ­dos organizados na tela (Fornecedor, Faturado, Parcelas, ClassificaÃ§Ã£o de Despesa) e o JSON completo.
+Na interface você pode:
+1. Fazer login com o usuário padrão (`joao.paraiba` / `costelaoNoDomingo`).
+2. Lançar Notas Fiscais via IA (upload de PDF + conferência + persistência).
+3. Gerenciar todos os cadastros e movimentações financeiras.
+4. Consultar o banco via **Agente RAG** nos modos **Simples** e **Embeddings**.
 
 ---
 
-## ðŸ“– DocumentaÃ§Ã£o Interativa da API (Swagger)
+## 📖 Documentação Interativa da API (Swagger)
 
 Com o servidor rodando, acesse:
 
@@ -196,43 +212,8 @@ Com o servidor rodando, acesse:
 http://localhost:8000/docs
 ```
 
-LÃ¡ vocÃª encontra todos os endpoints documentados e pode testÃ¡-los diretamente pelo navegador com o botÃ£o **"Try it out"**.
+Lá você encontra todos os endpoints documentados e pode testá-los diretamente pelo navegador com o botão **"Try it out"**.
 
 ---
 
-Desenvolvido por **Guilherme Leal** e **Felipy Chimango** â€” N2 Engenharia de Software ðŸŽ“
-
-## N2 - Etapa 2
-- Tela inicial: `/` (SPA em `static/`). Lançar via IA: extrai o DANFE, consulta Fornecedor/Faturado/Despesa (EXISTE/NÃO EXISTE), cria o que faltar e lança o movimento A PAGAR com parcelas (`POST /documentos/verificar` e `/documentos/lancar`).
-- CRUDs com exclusão lógica (STATUS ATIVO/INATIVO, reativação): `/parceiros`, `/titulares`, `/categorias`, `/registros`.
-- Migração automática das colunas novas no startup (`integration/migrations.py`).
-- Testes: `python -m pytest -q tests`.
-- Deploy: `render.yaml` (Render Blueprint, Postgres incluso).
-
----
-
-## 🚀 N3 - 3ª Etapa: Consulta com Agente Inteligente (RAG)
-**Entrega: 02/12/2026 | Peso: 60% Entrega + 40% Avaliação**
-
-Implementação completa do padrão **Retrieval-Augmented Generation (RAG)** integrado ao CASHFLOW:
-
-### 1. 🔹 RAG Simples (Peso: 25%)
-- **Retriever:** Consulta SQLModel no banco relacional buscando registros financeiros ativos, parceiros, titulares e parcelas.
-- **Augmentation:** Montagem de prompt estruturado alimentado com o contexto tabular recuperado.
-- **Generator:** Modelo Gemini (`gemini-2.0-flash` / `gemini-1.5-flash`) gera respostas sintetizadas e fundamentadas no banco.
-
-### 2. 🔸 RAG Embeddings / Semântico (Peso: 35%)
-- **Indexação Vetorial:** Vetorização dos registros financeiros e notas fiscais com modelo de embeddings (`models/text-embedding-004`).
-- **Retriever Semântico:** Cálculo de proximidade conceitual via **Similaridade de Cosseno** entre o embedding da pergunta e os documentos indexados.
-- **Geração:** Injeção dos documentos semanticamente mais relevantes no prompt do Gemini, permitindo encontrar dados mesmo sem correspondência literal de palavras (ex: *"peças e manutenção"* recupera itens agrícolas).
-
-### 3. 🖥️ Interface Web do Agente RAG
-- Acessível na barra lateral: **🤖 Consulta RAG (N3)**.
-- Input para perguntas em linguagem natural + botões de exemplos rápidos.
-- Seletor de método: **RAG Simples**, **RAG Embeddings** ou **Comparar Ambos (Lado a Lado)**.
-- **Transparência RAG:** Exibição do retorno elaborado pelo LLM e lista das fontes e registros recuperados do banco (com score de similaridade).
-
-### 4. 🔌 Endpoints da API (`/rag`)
-- `POST /rag/consultar`: Executa a busca e geração com o Agente RAG.
-- `GET /rag/status`: Estatísticas de registros ativos e cache vetorial.
-- `POST /rag/reindexar`: Atualização e pré-aquecimento dos embeddings.
+Desenvolvido por **Guilherme Leal** e **Felipy Chimango** — Engenharia de Software (UniRV) 🎓
